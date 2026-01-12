@@ -19,17 +19,15 @@ void plot_pT_split(){
     // TString MC_name = "genpurp";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
     
-    // float range_min = 2.5;
-    // float range_max = 3.5;
     float range_min = 0;
-    float range_max = 5;
+    float range_max = 10;
 
     // Load the dataframe keys
     TFile *file = TFile::Open(data_file);
     auto *keys = file->GetListOfKeys();
 
     // Initialize inv mass variables
-    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, decay_pT, other_pT;
+    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, decay_pT, secondary_pT, other_pT;
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
@@ -38,8 +36,10 @@ void plot_pT_split(){
         // Prepare to read muon info
         Long64_t fMotherPDG;
         float fPt;
+        bool fIsSecondary;
         tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
         tree->SetBranchAddress("fPtassoc", &fPt);
+        tree->SetBranchAddress("fIsSecondaryMuon", &fIsSecondary);
         
         // First pass: build groups of muons from the same event
         Long64_t n = tree->GetEntries();
@@ -64,7 +64,9 @@ void plot_pT_split(){
             }
             else if (std::abs(fMotherPDG) == 211 || std::abs(fMotherPDG) == 321) {
                 decay_pT.push_back(fPt);
-            }
+            }else if (fIsSecondary) {
+                secondary_pT.push_back(fPt);
+            } 
             else {
                 other_pT.push_back(fPt);
             }
@@ -73,12 +75,11 @@ void plot_pT_split(){
 
     // Plot histogram of candidate invariant masses
     TCanvas *c1 = new TCanvas("c1", "pT of muons", 800, 600);
-    TH1F *invMassHist = new TH1F("h1","pT of Muons;pT (GeV/c);Counts",100,range_min,range_max);
-    invMassHist->FillN(all_pT.size(), all_pT.data(), nullptr);
-    invMassHist->SetLineWidth(3); 
-    invMassHist->SetLineColor(kBlack); 
-    invMassHist->Draw();
-
+    TH1F *pTHist = new TH1F("h1","pT of Muons;pT (GeV/c);Counts",100,range_min,range_max);
+    pTHist->FillN(all_pT.size(), all_pT.data(), nullptr);
+    pTHist->SetLineWidth(3); 
+    pTHist->SetLineColor(kBlack); 
+    pTHist->Draw();
     // Add secondary histograms
     TH1F *jpsiHist = new TH1F("h2","",100,range_min,range_max);
     jpsiHist->FillN(JPsi_pT.size(), JPsi_pT.data(), nullptr);
@@ -110,6 +111,12 @@ void plot_pT_split(){
     decayHist->SetLineWidth(2);
     decayHist->Draw("SAME");
 
+    TH1F *secondaryHist = new TH1F("h4","",100,range_min,range_max);
+    secondaryHist->FillN(secondary_pT.size(), secondary_pT.data(), nullptr);
+    secondaryHist->SetLineColor(kYellow);
+    secondaryHist->SetLineWidth(2);
+    secondaryHist->Draw("SAME");
+
     TH1F *otherHist = new TH1F("h4","",100,range_min,range_max);
     otherHist->FillN(other_pT.size(), other_pT.data(), nullptr);
     otherHist->SetLineColor(kCyan);
@@ -124,17 +131,18 @@ void plot_pT_split(){
     TLegend *legend = new TLegend(0.6,0.6,0.88,0.88);
     legend->SetBorderSize(0);
     legend->SetFillStyle(0);
-    legend->AddEntry(invMassHist, "All", "l");
+    legend->AddEntry(pTHist, "All", "l");
     legend->AddEntry(jpsiHist, "J/#psi", "l");
     legend->AddEntry(psi2sHist, "#psi(2S)", "l");
     legend->AddEntry(charmHist, "Charm", "l");
     legend->AddEntry(bHist, "Beauty", "l");
     legend->AddEntry(decayHist, "Decay muons", "l");
+    legend->AddEntry(secondaryHist, "Secondary muons", "l");
     legend->AddEntry(otherHist, "Other", "l");
     legend->Draw();
 
-    drawLabel(MC_name);
-    TString out_name = TString::Format("results/%s/muon_pair_invariant_mass_%.1f_%.1f", MC_name.Data(), range_min, range_max);
+    drawLabel(MC_name, 0.18, 0.89);
+    TString out_name = TString::Format("results/%s/muon_pT_split", MC_name.Data());
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
 }
