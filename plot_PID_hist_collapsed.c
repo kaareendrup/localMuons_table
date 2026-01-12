@@ -46,8 +46,8 @@ static const std::vector<RangeMap> particleRangesSimple = {
     {511, 557, "beauty"},
     {2212, 2212, "p"},
     {3112, 3334, "strange"},
-    {4112, 4444, "charm"},
-    {5112, 5554, "beauty"},
+    {4101, 4444, "charm"},
+    {5101, 5554, "beauty"},
     {100443, 100443, "Psi(2S)"},
     {9999, 9999, "undefined"},
 };
