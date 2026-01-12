@@ -95,29 +95,29 @@ void plot_pT_split(){
 
     TH1F *charmHist = new TH1F("h4","",100,range_min,range_max);
     charmHist->FillN(charm_pT.size(), charm_pT.data(), nullptr);
-    charmHist->SetLineColor(kGreen);
+    charmHist->SetLineColor(kMagenta);
     charmHist->SetLineWidth(2);
     charmHist->Draw("SAME");
 
-    TH1F *bHist = new TH1F("h4","",100,range_min,range_max);
+    TH1F *bHist = new TH1F("h5","",100,range_min,range_max);
     bHist->FillN(b_pT.size(), b_pT.data(), nullptr);
     bHist->SetLineColor(kRed);
     bHist->SetLineWidth(2);
     bHist->Draw("SAME");
 
-    TH1F *decayHist = new TH1F("h4","",100,range_min,range_max);
+    TH1F *decayHist = new TH1F("h6","",100,range_min,range_max);
     decayHist->FillN(decay_pT.size(), decay_pT.data(), nullptr);
     decayHist->SetLineColor(kBlue);
     decayHist->SetLineWidth(2);
     decayHist->Draw("SAME");
 
-    TH1F *secondaryHist = new TH1F("h4","",100,range_min,range_max);
+    TH1F *secondaryHist = new TH1F("h7","",100,range_min,range_max);
     secondaryHist->FillN(secondary_pT.size(), secondary_pT.data(), nullptr);
     secondaryHist->SetLineColor(kYellow);
     secondaryHist->SetLineWidth(2);
     secondaryHist->Draw("SAME");
 
-    TH1F *otherHist = new TH1F("h4","",100,range_min,range_max);
+    TH1F *otherHist = new TH1F("h8","",100,range_min,range_max);
     otherHist->FillN(other_pT.size(), other_pT.data(), nullptr);
     otherHist->SetLineColor(kCyan);
     otherHist->SetLineWidth(2);
