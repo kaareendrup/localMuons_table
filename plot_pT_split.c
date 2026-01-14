@@ -73,7 +73,7 @@ void plot_pT_split(){
         }
     }
 
-    // Plot histogram of candidate invariant masses
+    // Plot histogram of pT distributions
     TCanvas *c1 = new TCanvas("c1", "pT of muons", 800, 600);
     TH1F *pTHist = new TH1F("h1","pT of Muons;pT (GeV/c);Counts",100,range_min,range_max);
     pTHist->FillN(all_pT.size(), all_pT.data(), nullptr);
