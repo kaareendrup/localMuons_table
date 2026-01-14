@@ -39,7 +39,7 @@ void increasePadMargins(TCanvas* c, int n) {
     }
 }
 
-void drawLabel(TString MC_name, Double_t x = 0.18, Double_t y = 0.85) {
+void drawLabel(TString MC_name, Double_t x = 0.18, Double_t y = 0.85, TString extra_label = "") {
     TString label;
     if (MC_name == "genpurp") {
         label = "General purpose MC";
@@ -55,5 +55,5 @@ void drawLabel(TString MC_name, Double_t x = 0.18, Double_t y = 0.85) {
     latex.SetNDC();
     latex.SetTextSize(0.05);
     latex.SetTextFont(42);
-    latex.DrawLatex(x, y, label);
+    latex.DrawLatex(x, y, label + " " + extra_label);
 }
