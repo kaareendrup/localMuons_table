@@ -12,8 +12,9 @@ TTree* get_tree(TKey *key, TFile *file) {
     return tree;
 }
 
-void plot_source_matrix(TFile *file, TString MC_name) {
+void plot_source_matrix(TString data_file, TString MC_name) {
 
+    TFile *file = TFile::Open(data_file);
     auto *keys = file->GetListOfKeys();
     const TString sources[6] = {"fIsPrimary", "fIsProducedInTransport", "fIsProducedByGenerator", "fIsFromBackgroundEvent", "fIsHEPMCFinalState", "fIsPowhegDY"};
     bool flags[6];
@@ -65,18 +66,18 @@ void plot_source_matrix(TFile *file, TString MC_name) {
     delete c1;
 }
 
-void plot_source_pT(TFile *file, TString MC_name) {
+void plot_source_pT(TString data_file, TString MC_name) {
 
+    TFile *file = TFile::Open(data_file);
     auto *keys = file->GetListOfKeys();
+
     const TString sources[2] = {"fIsPrimary", "fIsProducedInTransport"};
     bool flags[2];
     std::vector<Double_t> pT_Primary, pT_Transport, pT_Other;
     float pT;
-    int n_entries = 0;
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
-        printf("Processing dataframe %d / %d\n", i+1, keys->GetEntries()-1);
         TTree *tree = get_tree((TKey*)keys->At(i), file);
 
         // Set branch addresses for source flags and pT
@@ -87,7 +88,6 @@ void plot_source_pT(TFile *file, TString MC_name) {
         // Loop over entries
         for (Long64_t j = 0; j < tree->GetEntries(); ++j) {
             tree->GetEntry(j); 
-            n_entries++;
 
             if (flags[0]) {
                 pT_Primary.push_back(pT);
@@ -100,8 +100,6 @@ void plot_source_pT(TFile *file, TString MC_name) {
             }
         }
     }
-
-    printf("Total entries processed: %d\n", n_entries);
 
     TCanvas *c1 = new TCanvas("c1", "Source pT Distributions", 1200, 600);
     TH1F *pTPrimaryHist = new TH1F("h1","Primary Muon pT Distribution;p_{T} (GeV/c);Counts",100,0,10);
@@ -144,16 +142,154 @@ void plot_source_pT(TFile *file, TString MC_name) {
     delete c1;
 }
 
+void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
+
+    float range_min = 0;
+    float range_max = 10;
+
+    // Load the dataframe keys
+    TFile *file = TFile::Open(data_file);
+    auto *keys = file->GetListOfKeys();
+
+    // Initialize inv mass variables
+    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, other_pT;
+
+    // Loop over dataframes
+    for (int i = 0; i < keys->GetEntries()-1; ++i) {
+        TTree *tree = get_tree((TKey*)keys->At(i), file);
+                
+        // Prepare to read muon info
+        Long64_t fMotherPDG;
+        float fPt;
+        bool fSourceFlag;
+        tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+        tree->SetBranchAddress("fPtassoc", &fPt);
+        tree->SetBranchAddress(source_flag, &fSourceFlag);
+        
+        // First pass: build groups of muons from the same event
+        Long64_t n = tree->GetEntries();
+        for (Long64_t i = 0; i < n; ++i) {
+            tree->GetEntry(i);
+
+            if (!fSourceFlag) continue;
+            
+            all_pT.push_back(fPt);
+
+            if (std::abs(fMotherPDG) == 443) {
+                JPsi_pT.push_back(fPt);
+            }
+            else if (std::abs(fMotherPDG) == 100443) {
+                Psi2S_pT.push_back(fPt);
+            }
+            else if ((std::abs(fMotherPDG) >= 411 && std::abs(fMotherPDG) <= 441) || 
+                     (std::abs(fMotherPDG) >= 4101 && std::abs(fMotherPDG) <= 4444)) {
+                charm_pT.push_back(fPt);
+            }
+            else if ((std::abs(fMotherPDG) >= 511 && std::abs(fMotherPDG) <= 557) || 
+                     (std::abs(fMotherPDG) >= 5101 && std::abs(fMotherPDG) <= 5554)) {
+                b_pT.push_back(fPt);
+            }
+            else if (std::abs(fMotherPDG) == 321) {
+                K_pT.push_back(fPt);
+            }
+            else if (std::abs(fMotherPDG) == 211) {
+                Pi_pT.push_back(fPt);
+            }
+            else {
+                other_pT.push_back(fPt);
+            }
+        }
+    }
+
+    // Plot histogram of pT distributions
+    TCanvas *c1 = new TCanvas("c1", "pT of muons", 800, 600);
+    TH1F *pTHist = new TH1F("h1","pT of Muons;pT (GeV/c);Counts",100,range_min,range_max);
+    pTHist->FillN(all_pT.size(), all_pT.data(), nullptr);
+    pTHist->SetLineWidth(3); 
+    pTHist->SetLineColor(kBlack); 
+    pTHist->Draw();
+
+    // Add secondary histograms
+    TH1F *jpsiHist = new TH1F("h2","",100,range_min,range_max);
+    jpsiHist->FillN(JPsi_pT.size(), JPsi_pT.data(), nullptr);
+    jpsiHist->SetLineColor(kGreen+1);
+    jpsiHist->SetLineWidth(2);
+    jpsiHist->Draw("SAME");
+
+    TH1F *psi2sHist = new TH1F("h3","",100,range_min,range_max);
+    psi2sHist->FillN(Psi2S_pT.size(), Psi2S_pT.data(), nullptr);
+    psi2sHist->SetLineColor(kGreen+2);
+    psi2sHist->SetLineWidth(2);
+    psi2sHist->Draw("SAME");
+
+    TH1F *charmHist = new TH1F("h4","",100,range_min,range_max);
+    charmHist->FillN(charm_pT.size(), charm_pT.data(), nullptr);
+    charmHist->SetLineColor(kMagenta);
+    charmHist->SetLineWidth(2);
+    charmHist->Draw("SAME");
+
+    TH1F *bHist = new TH1F("h5","",100,range_min,range_max);
+    bHist->FillN(b_pT.size(), b_pT.data(), nullptr);
+    bHist->SetLineColor(kRed);
+    bHist->SetLineWidth(2);
+    bHist->Draw("SAME");
+
+    TH1F *KHist = new TH1F("h6","",100,range_min,range_max);
+    KHist->FillN(K_pT.size(), K_pT.data(), nullptr);
+    KHist->SetLineColor(kBlue);
+    KHist->SetLineWidth(2);
+    KHist->Draw("SAME");
+
+    TH1F *PiHist = new TH1F("h7","",100,range_min,range_max);
+    PiHist->FillN(Pi_pT.size(), Pi_pT.data(), nullptr);
+    PiHist->SetLineColor(kOrange);
+    PiHist->SetLineWidth(2);
+    PiHist->Draw("SAME");
+
+    TH1F *otherHist = new TH1F("h8","",100,range_min,range_max);
+    otherHist->FillN(other_pT.size(), other_pT.data(), nullptr);
+    otherHist->SetLineColor(kCyan);
+    otherHist->SetLineWidth(2);
+    otherHist->Draw("SAME");
+    
+    // Style
+    gPad->SetLogy();
+    increaseMargins(c1);
+
+    // Legend
+    TLegend *legend = new TLegend(0.6,0.6,0.88,0.88);
+    legend->SetBorderSize(0);
+    legend->SetFillStyle(0);
+    legend->AddEntry(pTHist, "All", "l");
+    legend->AddEntry(jpsiHist, "J/#psi", "l");
+    legend->AddEntry(psi2sHist, "#psi(2S)", "l");
+    legend->AddEntry(charmHist, "Charm", "l");
+    legend->AddEntry(bHist, "Beauty", "l");
+    legend->AddEntry(KHist, "Kaons", "l");
+    legend->AddEntry(PiHist, "Pions", "l");
+    legend->AddEntry(otherHist, "No mother", "l");
+    legend->Draw();
+
+    // Adjust ymax
+    double maxY = pTHist->GetMaximum();
+    pTHist->SetMaximum(4 * maxY);
+
+    drawLabel(MC_name, 0.18, 0.89, source_flag);
+    TString out_name = TString::Format("results/%s/muon_pT_split_%s", MC_name.Data(), source_flag.Data());
+    out_name.ReplaceAll(".", "_");
+    c1->SaveAs(out_name + ".png");
+
+}
+
 void inspect_sources() {
 
     // TString MC_name = "DQ";
     // TString MC_name = "HF";
     TString MC_name = "genpurp";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
-    
-    // Load the dataframe keys
-    TFile *file = TFile::Open(data_file);
 
-    plot_source_matrix(file, MC_name);
-    plot_source_pT(file, MC_name);
+    plot_source_matrix(data_file, MC_name);
+    plot_source_pT(data_file, MC_name);
+    plot_source_PID(data_file, MC_name, "fIsPrimary");
+    plot_source_PID(data_file, MC_name, "fIsProducedInTransport");
 }
