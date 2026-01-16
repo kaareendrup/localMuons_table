@@ -19,13 +19,12 @@ void plot_pair_invmass_split(){
     // TString MC_name = "genpurp";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
     
-    // float range_min = 2.5;
-    // float range_max = 3.5;
     float range_min = 0;
-    float range_max = 8;
+    float range_max = 6;
+    int n_bins = 100;
 
-    // TString motherLabel = "fMother";
-    TString motherLabel = "fGrandmother";
+    TString motherLabel = "fMother";
+    // TString motherLabel = "fGrandmother";
 
     // Load the dataframe keys
     TFile *file = TFile::Open(data_file);
@@ -109,42 +108,47 @@ void plot_pair_invmass_split(){
 
     // Plot histogram of candidate invariant masses
     TCanvas *c1 = new TCanvas("c1", "Invariant Mass of Muon Pairs", 800, 600);
-    TH1F *invMassHist = new TH1F("h1","Invariant Mass of Muon Pairs;Invariant Mass (GeV/c^{2});Counts",100,range_min,range_max);
+    TH1F *invMassHist = new TH1F("h1","Invariant Mass of Muon Pairs;Invariant Mass (GeV/c^{2});Counts",n_bins,range_min,range_max);
     invMassHist->FillN(all_inv_masses.size(), all_inv_masses.data(), nullptr);
-    invMassHist->Draw();
-    // invMassHist->Sumw2();
-
+    invMassHist->SetLineColor(kBlack); 
+    invMassHist->SetLineWidth(3);
+    invMassHist->Sumw2();
+    invMassHist->Draw("HIST");
+    
     // Add secondary histograms
-    TH1F *jpsiHist = new TH1F("h2","",100,range_min,range_max);
+    TH1F *jpsiHist = new TH1F("h2","",n_bins,range_min,range_max);
     jpsiHist->FillN(JPsi_inv_masses.size(), JPsi_inv_masses.data(), nullptr);
     jpsiHist->SetLineColor(kGreen+1);
     jpsiHist->SetLineWidth(2);
-    jpsiHist->Draw("SAME");
-
-    TH1F *psi2sHist = new TH1F("h3","",100,range_min,range_max);
+    jpsiHist->Sumw2();
+    jpsiHist->Draw("HIST SAME");
+    jpsiHist->Draw("E SAME");
+    
+    TH1F *psi2sHist = new TH1F("h3","",n_bins,range_min,range_max);
     psi2sHist->FillN(Psi2S_inv_masses.size(), Psi2S_inv_masses.data(), nullptr);
     psi2sHist->SetLineColor(kGreen+2);
     psi2sHist->SetLineWidth(2);
-    psi2sHist->Draw("SAME");
-
-    TH1F *otherHist = new TH1F("h4","",100,range_min,range_max);
+    psi2sHist->Sumw2();
+    psi2sHist->Draw("HIST SAME");
+    psi2sHist->Draw("E SAME");
+    
+    TH1F *otherHist = new TH1F("h4","",n_bins,range_min,range_max);
     otherHist->FillN(other_inv_masses.size(), other_inv_masses.data(), nullptr);
     otherHist->SetLineColor(kRed);
     otherHist->SetLineWidth(2);
-    otherHist->Draw("SAME");
-
+    otherHist->Sumw2();
+    otherHist->Draw("HIST SAME");
+    otherHist->Draw("E SAME");
+    
     // Style
     invMassHist->SetLineWidth(3); 
-    invMassHist->SetLineColor(kBlack); 
-    invMassHist->SetMarkerStyle(kFullCircle); 
-    invMassHist->SetMarkerSize(.5); 
-    invMassHist->SetMarkerColor(kRed);
     increaseMargins(c1);
 
     // Legend
     TLegend *legend = new TLegend(0.7,0.7,0.88,0.88);
     legend->SetBorderSize(0);
     legend->SetFillStyle(0);
+    legend->AddEntry(invMassHist, "All", "l");
     legend->AddEntry(jpsiHist, "J/#psi", "l");
     legend->AddEntry(psi2sHist, "#psi(2S)", "l");
     legend->AddEntry(otherHist, "Other", "l");
