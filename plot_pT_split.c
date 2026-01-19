@@ -14,9 +14,9 @@ TTree* get_tree(TKey *key, TFile *file) {
 
 void plot_pT_split(){
 
-    TString MC_name = "DQ";
+    // TString MC_name = "DQ";
     // TString MC_name = "HF";
-    // TString MC_name = "genpurp";
+    TString MC_name = "genpurp";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
     
     float range_min = 0;
@@ -27,7 +27,7 @@ void plot_pT_split(){
     auto *keys = file->GetListOfKeys();
 
     // Initialize inv mass variables
-    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, decay_pT, secondary_pT, other_pT;
+    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, decay_pT, transport_pT, other_pT;
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
@@ -36,10 +36,11 @@ void plot_pT_split(){
         // Prepare to read muon info
         Long64_t fMotherPDG;
         float fPt;
-        bool fIsSecondary;
-        tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+        bool fIsProducedInTransport;
+        // tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+        tree->SetBranchAddress("fGrandmotherPDG", &fMotherPDG);
         tree->SetBranchAddress("fPtassoc", &fPt);
-        tree->SetBranchAddress("fIsSecondaryMuon", &fIsSecondary);
+        tree->SetBranchAddress("fIsProducedInTransport", &fIsProducedInTransport);
         
         // First pass: build groups of muons from the same event
         Long64_t n = tree->GetEntries();
@@ -64,8 +65,8 @@ void plot_pT_split(){
             }
             else if (std::abs(fMotherPDG) == 211 || std::abs(fMotherPDG) == 321) {
                 decay_pT.push_back(fPt);
-            }else if (fIsSecondary) {
-                secondary_pT.push_back(fPt);
+            }else if (fIsProducedInTransport) {
+                transport_pT.push_back(fPt);
             } 
             else {
                 other_pT.push_back(fPt);
@@ -111,11 +112,11 @@ void plot_pT_split(){
     decayHist->SetLineWidth(2);
     decayHist->Draw("SAME");
 
-    TH1F *secondaryHist = new TH1F("h7","",100,range_min,range_max);
-    secondaryHist->FillN(secondary_pT.size(), secondary_pT.data(), nullptr);
-    secondaryHist->SetLineColor(kYellow);
-    secondaryHist->SetLineWidth(2);
-    secondaryHist->Draw("SAME");
+    TH1F *transportHist = new TH1F("h7","",100,range_min,range_max);
+    transportHist->FillN(transport_pT.size(), transport_pT.data(), nullptr);
+    transportHist->SetLineColor(kYellow);
+    transportHist->SetLineWidth(2);
+    transportHist->Draw("SAME");
 
     TH1F *otherHist = new TH1F("h8","",100,range_min,range_max);
     otherHist->FillN(other_pT.size(), other_pT.data(), nullptr);
@@ -137,7 +138,7 @@ void plot_pT_split(){
     legend->AddEntry(charmHist, "Charm", "l");
     legend->AddEntry(bHist, "Beauty", "l");
     legend->AddEntry(decayHist, "Decay muons", "l");
-    legend->AddEntry(secondaryHist, "Secondary muons", "l");
+    legend->AddEntry(transportHist, "Transport muons", "l");
     legend->AddEntry(otherHist, "Other", "l");
     legend->Draw();
 

@@ -152,7 +152,7 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
     auto *keys = file->GetListOfKeys();
 
     // Initialize inv mass variables
-    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, other_pT;
+    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, noMC_pT, other_pT;
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
@@ -162,7 +162,8 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
         Long64_t fMotherPDG;
         float fPt;
         bool fSourceFlag;
-        tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+        // tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+        tree->SetBranchAddress("fGrandmotherPDG", &fMotherPDG);
         tree->SetBranchAddress("fPtassoc", &fPt);
         tree->SetBranchAddress(source_flag, &fSourceFlag);
         
@@ -194,6 +195,8 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
             }
             else if (std::abs(fMotherPDG) == 211) {
                 Pi_pT.push_back(fPt);
+            } else if (fMotherPDG == -9999) {
+                noMC_pT.push_back(fPt);
             }
             else {
                 other_pT.push_back(fPt);
@@ -246,7 +249,13 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
     PiHist->SetLineWidth(2);
     PiHist->Draw("SAME");
 
-    TH1F *otherHist = new TH1F("h8","",100,range_min,range_max);
+    TH1F *noMCHist = new TH1F("h8","",100,range_min,range_max);
+    noMCHist->FillN(noMC_pT.size(), noMC_pT.data(), nullptr);
+    noMCHist->SetLineColor(kGray);
+    noMCHist->SetLineWidth(2);
+    noMCHist->Draw("SAME");
+
+    TH1F *otherHist = new TH1F("h9","",100,range_min,range_max);
     otherHist->FillN(other_pT.size(), other_pT.data(), nullptr);
     otherHist->SetLineColor(kCyan);
     otherHist->SetLineWidth(2);
@@ -267,7 +276,8 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
     legend->AddEntry(bHist, "Beauty", "l");
     legend->AddEntry(KHist, "Kaons", "l");
     legend->AddEntry(PiHist, "Pions", "l");
-    legend->AddEntry(otherHist, "No mother", "l");
+    legend->AddEntry(noMCHist, "No mother", "l");
+    legend->AddEntry(otherHist, "Other", "l");
     legend->Draw();
 
     // Adjust ymax
