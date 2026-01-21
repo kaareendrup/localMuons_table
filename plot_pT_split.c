@@ -19,6 +19,7 @@ void plot_pT_split(){
     TString MC_name = "genpurp";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
     
+    int n_bins = 20;
     float range_min = 0;
     float range_max = 10;
 
@@ -27,7 +28,8 @@ void plot_pT_split(){
     auto *keys = file->GetListOfKeys();
 
     // Initialize inv mass variables
-    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, decay_pT, transport_pT, other_pT;
+    // std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, decay_pT, transport_pT, other_pT;
+    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
@@ -51,24 +53,26 @@ void plot_pT_split(){
 
             if (std::abs(fMotherPDG) == 443) {
                 JPsi_pT.push_back(fPt);
-            }
-            else if (std::abs(fMotherPDG) == 100443) {
+            } else if (std::abs(fMotherPDG) == 100443) {
                 Psi2S_pT.push_back(fPt);
-            }
-            else if ((std::abs(fMotherPDG) >= 411 && std::abs(fMotherPDG) <= 441) || 
-                     (std::abs(fMotherPDG) >= 4101 && std::abs(fMotherPDG) <= 4444)) {
+            } else if ((std::abs(fMotherPDG) >= 411 && std::abs(fMotherPDG) <= 445) || 
+                       (std::abs(fMotherPDG) >= 4101 && std::abs(fMotherPDG) <= 4444)) {
                 charm_pT.push_back(fPt);
-            }
-            else if ((std::abs(fMotherPDG) >= 511 && std::abs(fMotherPDG) <= 557) || 
-                     (std::abs(fMotherPDG) >= 5101 && std::abs(fMotherPDG) <= 5554)) {
+            } else if ((std::abs(fMotherPDG) >= 511 && std::abs(fMotherPDG) <= 557) || 
+                       (std::abs(fMotherPDG) >= 5101 && std::abs(fMotherPDG) <= 5554)) {
                 b_pT.push_back(fPt);
-            }
-            else if (std::abs(fMotherPDG) == 211 || std::abs(fMotherPDG) == 321) {
-                decay_pT.push_back(fPt);
-            }else if (fIsProducedInTransport) {
-                transport_pT.push_back(fPt);
-            } 
-            else {
+            } else if (std::abs(fMotherPDG) == 321 || std::abs(fMotherPDG) == 311 || 
+                       std::abs(fMotherPDG) == 130 || std::abs(fMotherPDG) == 323 ) {
+                K_pT.push_back(fPt);
+            } else if (std::abs(fMotherPDG) == 211 || std::abs(fMotherPDG) == 113 || 
+                       std::abs(fMotherPDG) == 111 || std::abs(fMotherPDG) == 213 ) {
+                Pi_pT.push_back(fPt);
+            } else if (std::abs(fMotherPDG) == 221 || std::abs(fMotherPDG) == 331 || 
+                       std::abs(fMotherPDG) == 223 || std::abs(fMotherPDG) == 333 ) {
+                LM_pT.push_back(fPt);
+            } else if (fMotherPDG == -9999) {
+                noMC_pT.push_back(fPt);
+            } else {
                 other_pT.push_back(fPt);
             }
         }
@@ -76,53 +80,84 @@ void plot_pT_split(){
 
     // Plot histogram of pT distributions
     TCanvas *c1 = new TCanvas("c1", "pT of muons", 800, 600);
-    TH1F *pTHist = new TH1F("h1","pT of Muons;pT (GeV/c);Counts",100,range_min,range_max);
+    TH1F *pTHist = new TH1F("h1","pT of Muons;pT (GeV/c);Counts",n_bins,range_min,range_max);
     pTHist->FillN(all_pT.size(), all_pT.data(), nullptr);
     pTHist->SetLineWidth(3); 
     pTHist->SetLineColor(kBlack); 
     pTHist->Draw();
+
     // Add secondary histograms
-    TH1F *jpsiHist = new TH1F("h2","",100,range_min,range_max);
+    TH1F *jpsiHist = new TH1F("h2","",n_bins,range_min,range_max);
     jpsiHist->FillN(JPsi_pT.size(), JPsi_pT.data(), nullptr);
     jpsiHist->SetLineColor(kGreen+1);
     jpsiHist->SetLineWidth(2);
-    jpsiHist->Draw("SAME");
+    jpsiHist->Sumw2();
+    jpsiHist->Draw("HIST SAME");
+    jpsiHist->Draw("E SAME");
 
-    TH1F *psi2sHist = new TH1F("h3","",100,range_min,range_max);
+    TH1F *psi2sHist = new TH1F("h3","",n_bins,range_min,range_max);
     psi2sHist->FillN(Psi2S_pT.size(), Psi2S_pT.data(), nullptr);
     psi2sHist->SetLineColor(kGreen+2);
     psi2sHist->SetLineWidth(2);
-    psi2sHist->Draw("SAME");
+    psi2sHist->Sumw2();
+    psi2sHist->Draw("HIST SAME");
+    psi2sHist->Draw("E SAME");
 
-    TH1F *charmHist = new TH1F("h4","",100,range_min,range_max);
+    TH1F *charmHist = new TH1F("h4","",n_bins,range_min,range_max);
     charmHist->FillN(charm_pT.size(), charm_pT.data(), nullptr);
     charmHist->SetLineColor(kMagenta);
     charmHist->SetLineWidth(2);
-    charmHist->Draw("SAME");
+    charmHist->Sumw2();
+    charmHist->Draw("HIST SAME");
+    charmHist->Draw("E SAME");
 
-    TH1F *bHist = new TH1F("h5","",100,range_min,range_max);
+    TH1F *bHist = new TH1F("h5","",n_bins,range_min,range_max);
     bHist->FillN(b_pT.size(), b_pT.data(), nullptr);
     bHist->SetLineColor(kRed);
     bHist->SetLineWidth(2);
-    bHist->Draw("SAME");
+    bHist->Sumw2();
+    bHist->Draw("HIST SAME");
+    bHist->Draw("E SAME");
 
-    TH1F *decayHist = new TH1F("h6","",100,range_min,range_max);
-    decayHist->FillN(decay_pT.size(), decay_pT.data(), nullptr);
-    decayHist->SetLineColor(kBlue);
-    decayHist->SetLineWidth(2);
-    decayHist->Draw("SAME");
+    TH1F *KHist = new TH1F("h6","",n_bins,range_min,range_max);
+    KHist->FillN(K_pT.size(), K_pT.data(), nullptr);
+    KHist->SetLineColor(kBlue);
+    KHist->SetLineWidth(2);
+    KHist->Sumw2();
+    KHist->Draw("HIST SAME");
+    KHist->Draw("E SAME");
 
-    TH1F *transportHist = new TH1F("h7","",100,range_min,range_max);
-    transportHist->FillN(transport_pT.size(), transport_pT.data(), nullptr);
-    transportHist->SetLineColor(kYellow);
-    transportHist->SetLineWidth(2);
-    transportHist->Draw("SAME");
+    TH1F *PiHist = new TH1F("h7","",n_bins,range_min,range_max);
+    PiHist->FillN(Pi_pT.size(), Pi_pT.data(), nullptr);
+    PiHist->SetLineColor(kOrange);
+    PiHist->SetLineWidth(2);
+    PiHist->Sumw2();
+    PiHist->Draw("HIST SAME");
+    PiHist->Draw("E SAME");
 
-    TH1F *otherHist = new TH1F("h8","",100,range_min,range_max);
+    TH1F *LMHist = new TH1F("h8","",n_bins,range_min,range_max);
+    LMHist->FillN(LM_pT.size(), LM_pT.data(), nullptr);
+    LMHist->SetLineColor(kOrange+2);
+    LMHist->SetLineWidth(2);
+    LMHist->Sumw2();
+    LMHist->Draw("HIST SAME");
+    LMHist->Draw("E SAME");
+
+    TH1F *noMCHist = new TH1F("h9","",n_bins,range_min,range_max);
+    noMCHist->FillN(noMC_pT.size(), noMC_pT.data(), nullptr);
+    noMCHist->SetLineColor(kGray);
+    noMCHist->SetLineWidth(2);
+    noMCHist->Sumw2();
+    noMCHist->Draw("HIST SAME");
+    noMCHist->Draw("E SAME");
+
+    TH1F *otherHist = new TH1F("h10","",n_bins,range_min,range_max);
     otherHist->FillN(other_pT.size(), other_pT.data(), nullptr);
     otherHist->SetLineColor(kCyan);
     otherHist->SetLineWidth(2);
-    otherHist->Draw("SAME");
+    otherHist->Sumw2();
+    otherHist->Draw("HIST SAME");
+    otherHist->Draw("E SAME");
     
     // Style
     gPad->SetLogy();
@@ -137,8 +172,10 @@ void plot_pT_split(){
     legend->AddEntry(psi2sHist, "#psi(2S)", "l");
     legend->AddEntry(charmHist, "Charm", "l");
     legend->AddEntry(bHist, "Beauty", "l");
-    legend->AddEntry(decayHist, "Decay muons", "l");
-    legend->AddEntry(transportHist, "Transport muons", "l");
+    legend->AddEntry(KHist, "Kaons", "l");
+    legend->AddEntry(PiHist, "Pions", "l");
+    legend->AddEntry(LMHist, "Other light Mesons (#eta #omega #phi)", "l");
+    legend->AddEntry(noMCHist, "No mother", "l");
     legend->AddEntry(otherHist, "Other", "l");
     legend->Draw();
 
