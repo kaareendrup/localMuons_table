@@ -97,11 +97,9 @@ void plot_source_pT(TString data_file, TString MC_name) {
 
             if (flags[0]) {
                 pT_Primary.push_back(pT);
-            }
-            else if (flags[1]) {
+            } else if (flags[1]) {
                 pT_Transport.push_back(pT);
-            }
-            else {
+            } else {
                 pT_Other.push_back(pT);
             }
         }

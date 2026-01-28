@@ -92,11 +92,9 @@ void plot_pair_invmass_split(){
                     if (muon_motherIDs[j] == muon_motherIDs[k]) {
                         if (muon_motherPDGs[j] == 443 && muon_motherPDGs[k] == 443) {
                             JPsi_inv_masses.push_back(inv_mass);
-                        }
-                        else if (muon_motherPDGs[j] == 100443 && muon_motherPDGs[k] == 100443) {
+                        } else if (muon_motherPDGs[j] == 100443 && muon_motherPDGs[k] == 100443) {
                             Psi2S_inv_masses.push_back(inv_mass);
-                        }
-                        else {
+                        } else {
                             other_inv_masses.push_back(inv_mass);
                         }
                     } else {

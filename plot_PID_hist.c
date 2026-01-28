@@ -26,8 +26,7 @@ void insert_unique(std::set<Long64_t> *uniqueValues, TKey *key, TFile *file, con
         tree->GetEntry(j);
         if (PDG != -9999){
             uniqueValues->insert(std::abs(PDG));
-        }
-        else{
+        } else {
             uniqueValues->insert(PDG);
         }
     }
@@ -37,8 +36,9 @@ void plot_PID_hist(){
 
     // Load the tree
     // TString MC_name = "DQ";
+    TString MC_name = "DQ_gen";
     // TString MC_name = "HF";
-    TString MC_name = "genpurp";
+    // TString MC_name = "genpurp";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
     
     // Load dataframe keys 
@@ -80,14 +80,12 @@ void plot_PID_hist(){
             tree->GetEntry(j);
             if (motherPDG != -9999){
                 motherPDG_counts[std::abs(motherPDG)]++;
-            }
-            else {
+            } else {
                 motherPDG_counts[motherPDG]++;
             }
             if (grandmotherPDG != -9999){
                 grandmotherPDG_counts[std::abs(grandmotherPDG)]++;
-            }
-            else {
+            } else {
                 grandmotherPDG_counts[grandmotherPDG]++;
             }
         }

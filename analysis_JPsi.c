@@ -100,8 +100,7 @@ void analysis_JPsi() {
                         // Count triggers based on PDG
                         if (muon_motherPDGs[j] == 443 && muon_motherPDGs[k] == 443) {
                             triggers_JPsi++;
-                        }
-                        else if (muon_motherPDGs[j] == 100443 && muon_motherPDGs[k] == 100443) {
+                        } else if (muon_motherPDGs[j] == 100443 && muon_motherPDGs[k] == 100443) {
                             triggers_Psi2S++;
                         }
                     }
@@ -127,8 +126,7 @@ void analysis_JPsi() {
                         if (muon_motherPDGs[pair.first] == 443 && muon_motherPDGs[pair.second] == 443) {
                             deltaEta_JPsi.push_back(deltaEta);
                             deltaPhi_JPsi.push_back(deltaPhi);
-                        }
-                        else if (muon_motherPDGs[pair.first] == 100443 && muon_motherPDGs[pair.second] == 100443) {
+                        } else if (muon_motherPDGs[pair.first] == 100443 && muon_motherPDGs[pair.second] == 100443) {
                             deltaEta_Psi2S.push_back(deltaEta);
                             deltaPhi_Psi2S.push_back(deltaPhi);
                         }
