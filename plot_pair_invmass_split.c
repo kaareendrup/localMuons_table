@@ -15,6 +15,7 @@ TTree* get_tree(TKey *key, TFile *file) {
 void plot_pair_invmass_split(){
 
     TString MC_name = "DQ";
+    // TString MC_name = "DQ_gen";
     // TString MC_name = "HF";
     // TString MC_name = "genpurp";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
@@ -43,8 +44,8 @@ void plot_pair_invmass_split(){
         tree->SetBranchAddress("fEventIdx", &fEventIdx);
         
         // First pass: build groups of muons from the same event
-        Long64_t n = tree->GetEntries();
-        for (Long64_t i = 0; i < n; ++i) {
+        ULong64_t n = tree->GetEntries();
+        for (ULong64_t i = 0; i < n; ++i) {
             tree->GetEntry(i);
             muon_groups[fEventIdx].push_back(i);
         }
@@ -104,11 +105,13 @@ void plot_pair_invmass_split(){
                 }
             }
         }
+
+        tree->ResetBranchAddresses();
     }
 
     // Plot histogram of candidate invariant masses
     TCanvas *c1 = new TCanvas("c1", "Invariant Mass of Muon Pairs", 800, 600);
-    TH1F *invMassHist = new TH1F("h1","Invariant Mass of Muon Pairs;Invariant Mass (GeV/c^{2});Counts",n_bins,range_min,range_max);
+    TH1F *invMassHist = new TH1F("h1","Invariant Mass of Muon Pairs;Dimuon Invariant Mass (GeV/c^{2});Counts",n_bins,range_min,range_max);
     invMassHist->FillN(all_inv_masses.size(), all_inv_masses.data(), nullptr);
     invMassHist->SetLineColor(kBlack); 
     invMassHist->SetLineWidth(3);
@@ -145,13 +148,13 @@ void plot_pair_invmass_split(){
     increaseMargins(c1);
 
     // Legend
-    TLegend *legend = new TLegend(0.7,0.7,0.88,0.88);
+    TLegend *legend = new TLegend(0.59,0.7,0.95,0.88);
     legend->SetBorderSize(0);
     legend->SetFillStyle(0);
-    legend->AddEntry(invMassHist, "All", "l");
-    legend->AddEntry(jpsiHist, "J/#psi", "l");
-    legend->AddEntry(psi2sHist, "#psi(2S)", "l");
-    legend->AddEntry(otherHist, "Other", "l");
+    legend->AddEntry(invMassHist, "All pairs", "l");
+    legend->AddEntry(jpsiHist, "Same J/#psi mother", "l");
+    legend->AddEntry(psi2sHist, "Same #psi(2S) mother", "l");
+    legend->AddEntry(otherHist, "Different mothers (any PDG)", "l");
     legend->Draw();
 
     drawLabel(MC_name);
