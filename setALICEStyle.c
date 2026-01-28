@@ -39,21 +39,33 @@ void increasePadMargins(TCanvas* c, int n) {
     }
 }
 
-void drawLabel(TString MC_name, Double_t x = 0.18, Double_t y = 0.85, TString extra_label = "") {
-    TString label;
+void drawLabel(TString MC_name, Double_t x = 0.50, Double_t y = 0.85, TString extra_label = "") {
+    TString label, s1, s2;
     if (MC_name == "genpurp") {
-        label = "General purpose MC";
+        label = "Pythia General purpose MC";
+        s1 = "#sqrt{#it{s}} = 5.36 TeV";
+        s2 = "matchedQualityCuts";
     } else if (MC_name == "DQ") {
-        label = "DQ prompt J/#Psi MC";
+        label = "Pythia DQ prompt J/#Psi MC";
+        s1 = "#sqrt{#it{s}} = 13.6 TeV";
+        s2 = "matchedQualityCuts";
     } else if (MC_name == "HF") {
-        label = "HF C#rightarrow#mu MC";
+        label = "Pythia HF C#rightarrow#mu MC";
+        s1 = "#sqrt{#it{s}} = 13.6 TeV";
+        s2 = "matchedQualityCuts";
     } else {
         label = MC_name;
     }
 
     TLatex latex;
     latex.SetNDC();
-    latex.SetTextSize(0.05);
+    latex.SetTextAlign(31);
+    latex.SetTextSize(0.04);
     latex.SetTextFont(42);
-    latex.DrawLatex(x, y, label + " " + extra_label);
+    latex.DrawLatex(x, y, label);
+    latex.DrawLatex(x, y - 0.05, s1);
+    latex.DrawLatex(x, y - 0.10, s2);
+    if (extra_label != "") {
+        latex.DrawLatex(x, y - 0.15, extra_label);
+    }
 }
