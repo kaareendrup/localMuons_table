@@ -28,13 +28,19 @@ void plot_pT_split(){
     auto *keys = file->GetListOfKeys();
 
     // Initialize inv mass variables
-    // std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, decay_pT, transport_pT, other_pT;
-    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
+    // std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
+    std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, LM_pT, noMC_pT, other_pT;
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
+
+        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
+
         TTree *tree = get_tree((TKey*)keys->At(i), file);
                 
+        // tree->SetCacheSize(0);
+        // tree->SetDirectory(nullptr);
+
         // Prepare to read muon info
         Long64_t fMotherPDG;
         float fPt;
@@ -63,10 +69,12 @@ void plot_pT_split(){
                 b_pT.push_back(fPt);
             } else if (std::abs(fMotherPDG) == 321 || std::abs(fMotherPDG) == 311 || 
                        std::abs(fMotherPDG) == 130 || std::abs(fMotherPDG) == 323 ) {
-                K_pT.push_back(fPt);
+                // K_pT.push_back(fPt);
+                LM_pT.push_back(fPt);
             } else if (std::abs(fMotherPDG) == 211 || std::abs(fMotherPDG) == 113 || 
                        std::abs(fMotherPDG) == 111 || std::abs(fMotherPDG) == 213 ) {
-                Pi_pT.push_back(fPt);
+                // Pi_pT.push_back(fPt);
+                LM_pT.push_back(fPt);
             } else if (std::abs(fMotherPDG) == 221 || std::abs(fMotherPDG) == 331 || 
                        std::abs(fMotherPDG) == 223 || std::abs(fMotherPDG) == 333 ) {
                 LM_pT.push_back(fPt);
@@ -76,6 +84,8 @@ void plot_pT_split(){
                 other_pT.push_back(fPt);
             }
         }
+
+        tree->ResetBranchAddresses();
     }
 
     // Plot histogram of pT distributions
@@ -89,7 +99,7 @@ void plot_pT_split(){
     // Add secondary histograms
     TH1F *jpsiHist = new TH1F("h2","",n_bins,range_min,range_max);
     jpsiHist->FillN(JPsi_pT.size(), JPsi_pT.data(), nullptr);
-    jpsiHist->SetLineColor(kGreen+1);
+    jpsiHist->SetLineColor(kMagenta);
     jpsiHist->SetLineWidth(2);
     jpsiHist->Sumw2();
     jpsiHist->Draw("HIST SAME");
@@ -97,7 +107,7 @@ void plot_pT_split(){
 
     TH1F *psi2sHist = new TH1F("h3","",n_bins,range_min,range_max);
     psi2sHist->FillN(Psi2S_pT.size(), Psi2S_pT.data(), nullptr);
-    psi2sHist->SetLineColor(kGreen+2);
+    psi2sHist->SetLineColor(kMagenta+1);
     psi2sHist->SetLineWidth(2);
     psi2sHist->Sumw2();
     psi2sHist->Draw("HIST SAME");
@@ -105,7 +115,7 @@ void plot_pT_split(){
 
     TH1F *charmHist = new TH1F("h4","",n_bins,range_min,range_max);
     charmHist->FillN(charm_pT.size(), charm_pT.data(), nullptr);
-    charmHist->SetLineColor(kMagenta);
+    charmHist->SetLineColor(kGreen);
     charmHist->SetLineWidth(2);
     charmHist->Sumw2();
     charmHist->Draw("HIST SAME");
@@ -119,25 +129,26 @@ void plot_pT_split(){
     bHist->Draw("HIST SAME");
     bHist->Draw("E SAME");
 
-    TH1F *KHist = new TH1F("h6","",n_bins,range_min,range_max);
-    KHist->FillN(K_pT.size(), K_pT.data(), nullptr);
-    KHist->SetLineColor(kBlue);
-    KHist->SetLineWidth(2);
-    KHist->Sumw2();
-    KHist->Draw("HIST SAME");
-    KHist->Draw("E SAME");
+    // TH1F *KHist = new TH1F("h6","",n_bins,range_min,range_max);
+    // KHist->FillN(K_pT.size(), K_pT.data(), nullptr);
+    // KHist->SetLineColor(kBlue);
+    // KHist->SetLineWidth(2);
+    // KHist->Sumw2();
+    // KHist->Draw("HIST SAME");
+    // KHist->Draw("E SAME");
 
-    TH1F *PiHist = new TH1F("h7","",n_bins,range_min,range_max);
-    PiHist->FillN(Pi_pT.size(), Pi_pT.data(), nullptr);
-    PiHist->SetLineColor(kOrange);
-    PiHist->SetLineWidth(2);
-    PiHist->Sumw2();
-    PiHist->Draw("HIST SAME");
-    PiHist->Draw("E SAME");
+    // TH1F *PiHist = new TH1F("h7","",n_bins,range_min,range_max);
+    // PiHist->FillN(Pi_pT.size(), Pi_pT.data(), nullptr);
+    // PiHist->SetLineColor(kOrange);
+    // PiHist->SetLineWidth(2);
+    // PiHist->Sumw2();
+    // PiHist->Draw("HIST SAME");
+    // PiHist->Draw("E SAME");
 
     TH1F *LMHist = new TH1F("h8","",n_bins,range_min,range_max);
     LMHist->FillN(LM_pT.size(), LM_pT.data(), nullptr);
-    LMHist->SetLineColor(kOrange+2);
+    // LMHist->SetLineColor(kOrange+2);
+    LMHist->SetLineColor(kBlue);
     LMHist->SetLineWidth(2);
     LMHist->Sumw2();
     LMHist->Draw("HIST SAME");
@@ -162,24 +173,27 @@ void plot_pT_split(){
     // Style
     gPad->SetLogy();
     increaseMargins(c1);
+    pTHist->SetMaximum(4 * pTHist->GetMaximum());
+    pTHist->SetMinimum(1);
 
     // Legend
-    TLegend *legend = new TLegend(0.6,0.6,0.88,0.88);
+    TLegend *legend = new TLegend(0.57,0.6,0.94,0.88);
     legend->SetBorderSize(0);
     legend->SetFillStyle(0);
-    legend->AddEntry(pTHist, "All", "l");
-    legend->AddEntry(jpsiHist, "J/#psi", "l");
-    legend->AddEntry(psi2sHist, "#psi(2S)", "l");
-    legend->AddEntry(charmHist, "Charm", "l");
-    legend->AddEntry(bHist, "Beauty", "l");
-    legend->AddEntry(KHist, "Kaons", "l");
-    legend->AddEntry(PiHist, "Pions", "l");
-    legend->AddEntry(LMHist, "Other light Mesons (#eta #omega #phi)", "l");
+    legend->AddEntry(pTHist, "All #mu", "l");
+    legend->AddEntry(jpsiHist, "#mu from J/#psi", "l");
+    legend->AddEntry(psi2sHist, "#mu from #psi(2S)", "l");
+    legend->AddEntry(charmHist, "#mu from Charm", "l");
+    legend->AddEntry(bHist, "#mu from Beauty", "l");
+    // legend->AddEntry(KHist, "#mu from Kaons", "l");
+    // legend->AddEntry(PiHist, "#mu from Pions", "l");
+    // legend->AddEntry(LMHist, "#mu from other light mesons (#eta,#omega,#phi)", "l");
+    legend->AddEntry(LMHist, "Decay #mu", "l");
+    legend->AddEntry(otherHist, "Other #mu", "l");
     legend->AddEntry(noMCHist, "No mother", "l");
-    legend->AddEntry(otherHist, "Other", "l");
     legend->Draw();
 
-    drawLabel(MC_name, 0.18, 0.89);
+    drawLabel(MC_name, 0.55, 0.89);
     TString out_name = TString::Format("results/%s/muon_pT_split", MC_name.Data());
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
