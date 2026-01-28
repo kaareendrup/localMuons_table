@@ -23,6 +23,9 @@ void plot_source_matrix(TString data_file, TString MC_name) {
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
+
+        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
+
         TTree *tree = get_tree((TKey*)keys->At(i), file);
 
         // Set branch addresses for source flags
@@ -78,6 +81,9 @@ void plot_source_pT(TString data_file, TString MC_name) {
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
+
+        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
+
         TTree *tree = get_tree((TKey*)keys->At(i), file);
 
         // Set branch addresses for source flags and pT
@@ -157,6 +163,9 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
 
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
+
+        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
+
         TTree *tree = get_tree((TKey*)keys->At(i), file);
                 
         // Prepare to read muon info
@@ -203,6 +212,8 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
                 other_pT.push_back(fPt);
             }
         }
+
+        tree->ResetBranchAddresses();
     }
 
     // Plot histogram of pT distributions
@@ -291,26 +302,26 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
     increaseMargins(c1);
 
     // Legend
-    TLegend *legend = new TLegend(0.6,0.6,0.88,0.88);
+    TLegend *legend = new TLegend(0.58,0.6,0.92,0.88);
     legend->SetBorderSize(0);
     legend->SetFillStyle(0);
-    legend->AddEntry(pTHist, "All", "l");
-    legend->AddEntry(jpsiHist, "J/#psi", "l");
-    legend->AddEntry(psi2sHist, "#psi(2S)", "l");
-    legend->AddEntry(charmHist, "Charm", "l");
-    legend->AddEntry(bHist, "Beauty", "l");
-    legend->AddEntry(KHist, "Kaons", "l");
-    legend->AddEntry(PiHist, "Pions", "l");
-    legend->AddEntry(LMHist, "Other light Mesons (#eta #omega #phi)", "l");
+    legend->AddEntry(pTHist, "All #mu", "l");
+    legend->AddEntry(jpsiHist, "#mu from J/#psi", "l");
+    legend->AddEntry(psi2sHist, "#mu from #psi(2S)", "l");
+    legend->AddEntry(charmHist, "#mu from Charm", "l");
+    legend->AddEntry(bHist, "#mu from Beauty", "l");
+    legend->AddEntry(KHist, "#mu from Kaons", "l");
+    legend->AddEntry(PiHist, "#mu from Pions", "l");
+    legend->AddEntry(LMHist, "#mu from other light mesons (#eta,#omega,#phi)", "l");
+    legend->AddEntry(otherHist, "Other #mu", "l");
     legend->AddEntry(noMCHist, "No mother", "l");
-    legend->AddEntry(otherHist, "Other", "l");
     legend->Draw();
 
     // Adjust ymax
     double maxY = pTHist->GetMaximum();
     pTHist->SetMaximum(4 * maxY);
 
-    drawLabel(MC_name, 0.18, 0.89, source_flag);
+    drawLabel(MC_name, 0.57, 0.89, source_flag);
     TString out_name = TString::Format("results/%s/muon_pT_split_%s", MC_name.Data(), source_flag.Data());
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
