@@ -15,6 +15,7 @@ TTree* get_tree(TKey *key, TFile *file) {
 void analysis_JPsi() {
 
     TString MC_name = "DQ";
+    // TString MC_name = "DQ_gen";
     // TString MC_name = "HF";
     // TString MC_name = "genpurp";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
@@ -50,7 +51,10 @@ void analysis_JPsi() {
         }
 
         // Prepare to read MC truth info
-        Long64_t fMotherID, fMotherPDG;
+        Long64_t fGlobalIndexMCtrack, fMotherID, fMotherPDG;
+        ULong64_t fGlobalIndexAssoc;
+        tree->SetBranchAddress("fGlobalIndexassoc", &fGlobalIndexAssoc);
+        tree->SetBranchAddress("fGlobalIndexMCtrack", &fGlobalIndexMCtrack);
         tree->SetBranchAddress(motherLabel + "ID", &fMotherID);
         tree->SetBranchAddress(motherLabel + "PDG", &fMotherPDG);
 
@@ -86,7 +90,7 @@ void analysis_JPsi() {
             // Search for pairs with same mother 
             for (int j = 0; j < muon_vectors.size(); ++j) {
                 for (int k = j + 1; k < muon_vectors.size(); ++k) {
-                    if (muon_motherIDs[j] == muon_motherIDs[k]) {
+                    if (muon_motherIDs[j] == muon_motherIDs[k] && muon_motherIDs[j] != -9999) {
 
                         // Store pair indices and components
                         pair_idxs.push_back(std::make_pair(j, k));
@@ -197,8 +201,8 @@ void analysis_JPsi() {
     // Legend
     TLegend *legend = new TLegend(0.7,0.3,0.88,0.48);
     legend->SetBorderSize(0);
-    legend->AddEntry(deltaEtaHist_JPsi, "JPsi", "l");
-    legend->AddEntry(deltaEtaHist_Psi2S, "Psi2S", "l");
+    legend->AddEntry(deltaEtaHist_JPsi, "J/#Psi", "l");
+    legend->AddEntry(deltaEtaHist_Psi2S, "#Psi(2S)", "l");
     legend->Draw();
 
 
