@@ -39,10 +39,19 @@ void increasePadMargins(TCanvas* c, int n) {
     }
 }
 
-void drawLabel(TString MC_name, Double_t x = 0.50, Double_t y = 0.85, TString extra_label = "") {
-    // TString label, s1, s2;
+void drawLabel(TString MC_name, TString type, Double_t x = 0.50, Double_t y = 0.85, TString extra_label = "") {
+
     TString label;
     std::vector<TString> details;
+
+    if (type == "reco") {
+        details.push_back("Reconstructed");
+    } else if (type == "gen") {
+        details.push_back("Generator level");
+    } else {
+        details.push_back(type);
+    }
+
     if (MC_name == "genpurp") {
         label = "Pythia General purpose MC";
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
