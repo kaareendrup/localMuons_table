@@ -165,7 +165,7 @@ void plot_pair_invmass_split(){
     std::cout << "Total pairs: " << all_inv_masses.size() << std::endl;
     std::cout << "Pairs from J/psi: " << JPsi_inv_masses.size() << std::endl;
     std::cout << "Pairs from Psi(2S): " << Psi2S_inv_masses.size() << std::endl;
-    std::cout << "Pairs from other/different mothers: " << other_inv_masses.size() << std::endl
+    std::cout << "Pairs from other/different mothers: " << other_inv_masses.size() << std::endl;
 
     drawLabel(MC_name, type);
     TString out_name = TString::Format("results/%s/%s/muon_pair_invariant_mass_%.1f_%.1f_%s", MC_name.Data(), type.Data(), range_min, range_max, motherLabel.Data());
