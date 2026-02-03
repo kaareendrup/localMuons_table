@@ -30,6 +30,8 @@ void insert_unique(std::set<Long64_t> *uniqueValues, TKey *key, TFile *file, con
             uniqueValues->insert(PDG);
         }
     }
+
+    delete tree;
 }
 
 void plot_PID_hist(){
@@ -89,6 +91,8 @@ void plot_PID_hist(){
                 grandmotherPDG_counts[grandmotherPDG]++;
             }
         }
+
+        delete tree;
     }
 
     // Plot with both log and linear y-axis

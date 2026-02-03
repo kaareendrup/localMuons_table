@@ -105,6 +105,7 @@ void plot_pair_invmass_split(){
         }
 
         tree->ResetBranchAddresses();
+        delete tree;
     }
 
     // Plot histogram of candidate invariant masses

@@ -77,6 +77,8 @@ void insert_unique(std::set<TString> *uniqueValues, TKey *key, TFile *file, cons
             uniqueValues->insert(particleName(std::abs(PDG), particleRanges));
         }
     }
+
+    delete tree;
 }
 
 void plot_PID_hist_collapsed(){
@@ -135,6 +137,8 @@ void plot_PID_hist_collapsed(){
                 grandmotherPDG_counts[particleName(std::abs(grandmotherPDG), particleRanges)]++;
             }
         }
+
+        delete tree;
     }
 
     // Plot with both log and linear y-axis

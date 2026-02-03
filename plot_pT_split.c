@@ -16,7 +16,10 @@ void plot_pT_split(){
 
     // TString MC_name = "DQ";
     // TString MC_name = "HF";
-    TString MC_name = "genpurp";
+    // TString MC_name = "genpurp";
+    TString MC_name = "k4h_baseline";
+    // TString MC_name = "k4h_cuts";
+    // TString MC_name = "k4h_standalone";
     TString data_file = "results/" + MC_name + "/muonAOD.root";
     
     int n_bins = 20;
@@ -26,6 +29,7 @@ void plot_pT_split(){
     // Load the dataframe keys
     TFile *file = TFile::Open(data_file);
     auto *keys = file->GetListOfKeys();
+    TTree *tree;
 
     // Initialize inv mass variables
     // std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
@@ -36,10 +40,7 @@ void plot_pT_split(){
 
         std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
 
-        TTree *tree = get_tree((TKey*)keys->At(i), file);
-                
-        // tree->SetCacheSize(0);
-        // tree->SetDirectory(nullptr);
+        tree = get_tree((TKey*)keys->At(i), file);
 
         // Prepare to read muon info
         Long64_t fMotherPDG;
@@ -86,6 +87,7 @@ void plot_pT_split(){
         }
 
         tree->ResetBranchAddresses();
+        delete tree;
     }
 
     // Plot histogram of pT distributions

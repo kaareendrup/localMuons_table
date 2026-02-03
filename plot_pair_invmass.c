@@ -91,6 +91,9 @@ void plot_pair_invmass(){
             // Store the best candidate invariant mass
             candidate_inv_masses.push_back(inv_mass_cand);
         }
+
+        tree->ResetBranchAddresses();
+        delete tree;
     }
 
     // Plot histogram of candidate invariant masses

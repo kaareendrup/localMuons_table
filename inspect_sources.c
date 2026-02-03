@@ -49,6 +49,9 @@ void plot_source_matrix(TString data_file, TString MC_name) {
                 }
             }
         }
+
+        tree->ResetBranchAddresses();
+        delete tree;
     }
 
     for (int i = 0; i < 6; ++i){
@@ -103,6 +106,9 @@ void plot_source_pT(TString data_file, TString MC_name) {
                 pT_Other.push_back(pT);
             }
         }
+
+        tree->ResetBranchAddresses();
+        delete tree;
     }
 
     TCanvas *c1 = new TCanvas("c1", "Source pT Distributions", 1200, 600);
@@ -212,6 +218,7 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
         }
 
         tree->ResetBranchAddresses();
+        delete tree;
     }
 
     // Plot histogram of pT distributions
