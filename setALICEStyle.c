@@ -40,19 +40,38 @@ void increasePadMargins(TCanvas* c, int n) {
 }
 
 void drawLabel(TString MC_name, Double_t x = 0.50, Double_t y = 0.85, TString extra_label = "") {
-    TString label, s1, s2;
+    // TString label, s1, s2;
+    TString label;
+    std::vector<TString> details;
     if (MC_name == "genpurp") {
         label = "Pythia General purpose MC";
-        s1 = "#sqrt{#it{s}} = 5.36 TeV";
-        s2 = "matchedQualityCuts";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("matchedQualityCuts");
     } else if (MC_name == "DQ") {
         label = "Pythia DQ prompt J/#Psi MC";
-        s1 = "#sqrt{#it{s}} = 13.6 TeV";
-        s2 = "matchedQualityCuts";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("matchedQualityCuts");
     } else if (MC_name == "HF") {
         label = "Pythia HF C#rightarrow#mu MC";
-        s1 = "#sqrt{#it{s}} = 13.6 TeV";
-        s2 = "matchedQualityCuts";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("matchedQualityCuts");
+    } else if (MC_name == "k4h_baseline") {
+        label = "Pythia General purpose MC";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("matchedQualityCuts");
+    } else if (MC_name == "k4h_cuts") {
+        label = "Pythia General purpose MC";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("matchedQualityCuts");
+        details.push_back("#chi2 MFTMCH < 40");
+        details.push_back("Ncluster MFC > 5");
+        details.push_back("Ncluster MCH > 5");
+        details.push_back("-3.6 < #eta < -2.5");
+    } else if (MC_name == "k4h_standalone") {
+        label = "Pythia General purpose MC";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("matchedMchMid");
+        details.push_back("muonQualityCuts");
     } else {
         label = MC_name;
     }
@@ -63,9 +82,10 @@ void drawLabel(TString MC_name, Double_t x = 0.50, Double_t y = 0.85, TString ex
     latex.SetTextSize(0.04);
     latex.SetTextFont(42);
     latex.DrawLatex(x, y, label);
-    latex.DrawLatex(x, y - 0.05, s1);
-    latex.DrawLatex(x, y - 0.10, s2);
+    for (size_t i = 0; i < details.size(); ++i) {
+        latex.DrawLatex(x, y - 0.05 * (i + 1), details[i]);
+    }
     if (extra_label != "") {
-        latex.DrawLatex(x, y - 0.15, extra_label);
+        latex.DrawLatex(x, y - 0.05 * (details.size() + 1), extra_label);
     }
 }
