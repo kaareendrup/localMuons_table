@@ -17,11 +17,15 @@ void plot_pT_split(){
     // TString MC_name = "DQ";
     // TString MC_name = "HF";
     // TString MC_name = "genpurp";
-    TString MC_name = "k4h_baseline";
+    // TString MC_name = "k4h_baseline";
     // TString MC_name = "k4h_cuts";
     // TString MC_name = "k4h_standalone";
-    TString data_file = "results/" + MC_name + "/muonAOD.root";
+    TString MC_name = "k4h_standalone";
     
+    // TString type = "reco";
+    TString type = "gen";
+
+    TString data_file = "results/" + MC_name + "/" + type + "/muonAOD.root";
     int n_bins = 20;
     float range_min = 0;
     float range_max = 10;
@@ -195,8 +199,18 @@ void plot_pT_split(){
     legend->AddEntry(noMCHist, "No mother", "l");
     legend->Draw();
 
-    drawLabel(MC_name, 0.55, 0.89);
-    TString out_name = TString::Format("results/%s/muon_pT_split", MC_name.Data());
+    // Print info
+    std::cout << "Total muons: " << all_pT.size() << std::endl;
+    std::cout << "Muons from J/psi: " << JPsi_pT.size() << std::endl;
+    std::cout << "Muons from Psi(2S): " << Psi2S_pT.size() << std::endl;
+    std::cout << "Muons from Charm: " << charm_pT.size() << std::endl;
+    std ::cout << "Muons from Beauty: " << b_pT.size() << std::endl;
+    std::cout << "Muons from Light Mesons: " << LM_pT.size() << std::endl;
+    std::cout << "Muons with no MC info: " << noMC_pT.size() << std::endl;
+    std::cout << "Other muons: " << other_pT.size() << std::endl;
+
+    drawLabel(MC_name, type, 0.55, 0.89);
+    TString out_name = TString::Format("results/%s/%s/muon_pT_split", MC_name.Data(), type.Data());
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
 }

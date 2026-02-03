@@ -14,12 +14,17 @@ TTree* get_tree(TKey *key, TFile *file) {
 
 void plot_pair_invmass_split(){
 
-    TString MC_name = "DQ";
+    // TString MC_name = "DQ";
     // TString MC_name = "DQ_gen";
     // TString MC_name = "HF";
     // TString MC_name = "genpurp";
-    TString data_file = "results/" + MC_name + "/muonAOD.root";
+    TString MC_name = "k4h_standalone";
     
+    // TString type = "reco";
+    TString type = "gen";
+
+    TString data_file = "results/" + MC_name + "/" + type + "/muonAOD.root";
+
     float range_min = 0;
     float range_max = 6;
     int n_bins = 100;
@@ -156,8 +161,14 @@ void plot_pair_invmass_split(){
     legend->AddEntry(otherHist, "Different mothers (any PDG)", "l");
     legend->Draw();
 
-    drawLabel(MC_name);
-    TString out_name = TString::Format("results/%s/muon_pair_invariant_mass_%.1f_%.1f_%s", MC_name.Data(), range_min, range_max, motherLabel.Data());
+    // Print info
+    std::cout << "Total pairs: " << all_inv_masses.size() << std::endl;
+    std::cout << "Pairs from J/psi: " << JPsi_inv_masses.size() << std::endl;
+    std::cout << "Pairs from Psi(2S): " << Psi2S_inv_masses.size() << std::endl;
+    std::cout << "Pairs from other/different mothers: " << other_inv_masses.size() << std::endl
+
+    drawLabel(MC_name, type);
+    TString out_name = TString::Format("results/%s/%s/muon_pair_invariant_mass_%.1f_%.1f_%s", MC_name.Data(), type.Data(), range_min, range_max, motherLabel.Data());
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
 }
