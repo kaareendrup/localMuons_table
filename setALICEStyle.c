@@ -48,6 +48,8 @@ void drawLabel(TString MC_name, TString type, Double_t x = 0.50, Double_t y = 0.
         details.push_back("Reconstructed");
     } else if (type == "gen") {
         details.push_back("Generator level");
+    } else if (type == "") {
+        // Do nothing
     } else {
         details.push_back(type);
     }
