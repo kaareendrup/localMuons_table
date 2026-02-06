@@ -12,7 +12,7 @@ TTree* get_tree(TKey *key, TFile *file) {
     return tree;
 }
 
-void analysis_JPsi() {
+void analysis_JPsi_MC() {
 
     TString MC_name = "DQ";
     // TString MC_name = "DQ_gen";
