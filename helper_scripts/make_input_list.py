@@ -13,7 +13,7 @@ def make_input_list(input_dir):
         for subrun in subruns:
             input_files.append(os.path.join(run_dir, subrun, 'AO2D.root'))
 
-    with open(f'{input_dir}/input_files.txt', 'w') as f:
+    with open(f'{input_dir}/input_data.txt', 'w') as f:
         for file in input_files:
             f.write(os.path.join(input_dir, file) + '\n')
 
