@@ -12,7 +12,8 @@
 !generate_download_script.py
 
 !format_download_jobs.py
-!format_json.py
+!format_json_cuts.py
+!format_json_indents.py
 !generate_download_script_hyperloop.py
 !generate_download_script_lxplus.py
 !make_input_list.py
