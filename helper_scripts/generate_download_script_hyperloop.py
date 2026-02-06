@@ -1,9 +1,9 @@
 import pandas as pd
 
-def generate_download_script(jobs_file, n_jobs, file_dir):
+def generate_download_script(input_dir, n_jobs, file_dir):
 
     # Read the formatted jobs CSV file to get ALICE grid directories
-    jobs_data = pd.read_csv(jobs_file, header=None, names=[
+    jobs_data = pd.read_csv(input_dir + 'jobs_formatted.csv', header=None, names=[
         'id', 
         'dir', 
         'throughput', 
@@ -15,7 +15,7 @@ def generate_download_script(jobs_file, n_jobs, file_dir):
         'status'
     ]).head(n_jobs)
 
-    with open(file_dir + 'download.sh', 'w') as script_file:
+    with open(input_dir + 'download.sh', 'w') as script_file:
 
         # Write header for the bash script
         script_file.write('#!/bin/bash\n\n')
@@ -34,14 +34,14 @@ def generate_download_script(jobs_file, n_jobs, file_dir):
     print(f'At a speed of .5 MB/s, this will take around {(n_jobs * 100) / 0.5 / 60:.2f} minutes to download.')
 
 run_name = 'DQ_data'
-# n_jobs = int(1e12)
+n_jobs = int(1e12)
 # n_jobs = 100
 # MC_name = 'HF'
-n_jobs = 10
+# n_jobs = 10
 # MC_name = 'genpurp'
 
-jobs_file = f'input_data/{run_name}/jobs_formatted.csv'
-output_dir = '/home/kaareendrup/analysis/localMuons_table/input_data/' + run_name + '/'
-# output_dir = '/media/kaareendrup/ec65dbb9-11dd-4abf-ae3e-f029466fe958/analysis/input_data/' + run_name + '/'
+input_dir = f'input_data/{run_name}/'
+# output_dir = '/home/kaareendrup/analysis/localMuons_table/input_data/' + run_name + '/'
+output_dir = '/media/kaareendrup/ec65dbb9-11dd-4abf-ae3e-f029466fe958/analysis/input_data/' + run_name + '/'
 
-generate_download_script(jobs_file, n_jobs, output_dir)
+generate_download_script(input_dir, n_jobs, output_dir)
