@@ -19,11 +19,13 @@ void plot_pT_split(){
     // TString MC_name = "genpurp";
     // TString MC_name = "k4h_baseline";
     // TString MC_name = "k4h_cuts";
-    // TString MC_name = "k4h_standalone";
     TString MC_name = "k4h_standalone";
     
     // TString type = "reco";
     TString type = "gen";
+
+    // bool showtype = false;
+    bool showtype = true;
 
     TString data_file = "results/" + MC_name + "/" + type + "/muonAOD.root";
     int n_bins = 20;
@@ -179,7 +181,7 @@ void plot_pT_split(){
     // Style
     gPad->SetLogy();
     increaseMargins(c1);
-    pTHist->SetMaximum(4 * pTHist->GetMaximum());
+    pTHist->SetMaximum(8 * pTHist->GetMaximum());
     pTHist->SetMinimum(1);
 
     // Legend
@@ -209,7 +211,12 @@ void plot_pT_split(){
     std::cout << "Muons with no MC info: " << noMC_pT.size() << std::endl;
     std::cout << "Other muons: " << other_pT.size() << std::endl;
 
-    drawLabel(MC_name, type, 0.55, 0.89);
+    if (showtype) {
+        drawLabel(MC_name, type, 0.55, 0.89);
+    } else {
+        drawLabel(MC_name, "", 0.55, 0.89);
+    }
+
     TString out_name = TString::Format("results/%s/%s/muon_pT_split", MC_name.Data(), type.Data());
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
