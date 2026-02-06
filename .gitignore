@@ -7,7 +7,7 @@
 !plot_PID_hist_collapsed.c
 !plot_pT_split.c
 !inspect_sources.c
-!analysis_JPsi.c
+!analysis_JPsi_MC.c
 !setALICEStyle.c
 !generate_download_script.py
 
