@@ -8,6 +8,7 @@
 !plot_pT_split.c
 !inspect_sources.c
 !analysis_JPsi_MC.c
+!analysis_JPsi_data.c
 !setALICEStyle.c
 !generate_download_script.py
 
