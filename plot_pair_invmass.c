@@ -14,15 +14,16 @@ TTree* get_tree(TKey *key, TFile *file) {
 
 void plot_pair_invmass(){
 
-    // TString MC_name = "DQ";
-    // TString MC_name = "HF";
-    // TString MC_name = "genpurp";
-    TString MC_name = "k4h_standalone";
+    TString data_name = "DQ_data";
+    // TString data_name = "DQ";
+    // TString data_name = "HF";
+    // TString data_name = "genpurp";
+    // TString data_name = "k4h_standalone";
     
-    // TString type = "reco";
-    TString type = "gen";
+    TString type = "reco";
+    // TString type = "gen";
 
-    TString data_file = "results/" + MC_name + "/" + type + "/muonAOD.root";
+    TString data_file = "results/" + data_name + "/" + type + "/muonAOD.root";
     
     // float range_min = 2.5;
     // float range_max = 3.5;
@@ -116,8 +117,8 @@ void plot_pair_invmass(){
     invMassHist->SetMarkerColor(kRed);
     increaseMargins(c1);
 
-    drawLabel(MC_name, type);
-    TString out_name = TString::Format("results/%s/muon_pair_invariant_mass_%.1f_%.1f", MC_name.Data(), range_min, range_max);
+    drawLabel(data_name, type);
+    TString out_name = TString::Format("results/%s/%s/muon_pair_invariant_mass_%.1f_%.1f", data_name.Data(), type.Data(), range_min, range_max);
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
 }

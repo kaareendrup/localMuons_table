@@ -18,7 +18,11 @@ void analysis_JPsi_MC() {
     // TString MC_name = "DQ_gen";
     // TString MC_name = "HF";
     // TString MC_name = "genpurp";
-    TString data_file = "results/" + MC_name + "/muonAOD.root";
+
+    TString type = "reco";
+    // TString type = "gen";
+
+    TString data_file = "results/" + MC_name + "/" + type + "/muonAOD.root";
     
     TString motherLabel = "fMother";
     // TString motherLabel = "fGrandmother";
@@ -204,7 +208,7 @@ void analysis_JPsi_MC() {
     legend->Draw();
 
 
-    TString out_name = TString::Format("results/%s/deltaEtaDeltaPhi_JPsi_Psi2S_%s", MC_name.Data(), motherLabel.Data());
+    TString out_name = TString::Format("results/%s/%s/deltaEtaDeltaPhi_JPsi_Psi2S_%s", MC_name.Data(), type.Data(), motherLabel.Data());
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
 }
