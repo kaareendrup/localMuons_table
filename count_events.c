@@ -32,6 +32,9 @@ void count_input(TString MC_name) {
             event_count += event_tree->GetEntries();
             muon_tree = get_tree((TKey*)keys->At(i), file, "O2reducedmuon");
             muon_count += muon_tree->GetEntries();
+
+            delete event_tree;
+            delete muon_tree;
         }
     }
 
@@ -54,6 +57,9 @@ void count_analysis(TString MC_name) {
     
     // Loop over dataframes
     for (int i = 0; i < keys->GetEntries()-1; ++i) {
+
+        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
+
         TTree *tree = get_tree((TKey*)keys->At(i), file, "O2dqmuontable");
     
         std::set<ULong64_t> unique_event_indices;
@@ -68,6 +74,8 @@ void count_analysis(TString MC_name) {
 
         event_count += unique_event_indices.size();
         muon_count += n;
+
+        delete tree;
     }
     
     // Print the total number of unique events
@@ -79,9 +87,12 @@ void count_analysis(TString MC_name) {
     
 void count_events() {
     // TString MC_name = "DQ";
-    TString MC_name = "HF";
+    // TString MC_name = "HF";
     // TString MC_name = "genpurp";
+    TString MC_name = "k4h_baseline/reco";
+    // TString MC_name = "k4h_standalone/reco";
+    // TString MC_name = "k4h_standalone/gen";
 
-    count_input(MC_name);
+    // count_input(MC_name);
     count_analysis(MC_name);
 }
