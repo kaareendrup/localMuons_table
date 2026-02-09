@@ -3,30 +3,27 @@
 
 SetALICEStyle();
 
-TTree* get_tree(TKey *key, TFile *file) {
-
-    const char* dirName = key->GetName();
-    TDirectoryFile *dir = (TDirectoryFile*)file->Get(dirName);
-    TTree *tree = (TTree*)dir->Get("O2dqmuontable");
-
-    return tree;
-}
-
 void plot_source_matrix(TString data_file, TString MC_name) {
 
     TFile *file = TFile::Open(data_file);
-    auto *keys = file->GetListOfKeys();
+    TIter nextKey(file->GetListOfKeys());
+    TKey* key;
+
     const TString sources[6] = {"fIsPrimary", "fIsProducedInTransport", "fIsProducedByGenerator", "fIsFromBackgroundEvent", "fIsHEPMCFinalState", "fIsPowhegDY"};
     bool flags[6];
 
     TH2I *sourceMatrix = new TH2I("sourceMatrix", "Source Matrix; ; ", 6, 0, 6, 6, 0, 6);
 
     // Loop over dataframes
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
+    while ((key = (TKey*) nextKey())) {
+        std::cout << "Processing " << i << "/" << file->GetListOfKeys()->GetEntries()-1 << std::endl;
+        
+        // Load directory and tree
+        TObject* obj = key->ReadObj();
+        if (!(obj->InheritsFrom("TDirectory"))) continue;
 
-        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
-
-        TTree *tree = get_tree((TKey*)keys->At(i), file);
+        TDirectory* dir = (TDirectory*) obj;
+        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
 
         // Set branch addresses for source flags
         for (int i =0; i < 6; ++i){
@@ -75,7 +72,8 @@ void plot_source_matrix(TString data_file, TString MC_name) {
 void plot_source_pT(TString data_file, TString MC_name) {
 
     TFile *file = TFile::Open(data_file);
-    auto *keys = file->GetListOfKeys();
+    TIter nextKey(file->GetListOfKeys());
+    TKey* key;
 
     const TString sources[2] = {"fIsPrimary", "fIsProducedInTransport"};
     bool flags[2];
@@ -83,11 +81,16 @@ void plot_source_pT(TString data_file, TString MC_name) {
     float pT;
 
     // Loop over dataframes
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
+    while ((key = (TKey*) nextKey())) {
 
-        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
+        std::cout << "Processing " << i << "/" << file->GetListOfKeys()->GetEntries()-1 << std::endl;
 
-        TTree *tree = get_tree((TKey*)keys->At(i), file);
+        // Load directory and tree
+        TObject* obj = key->ReadObj();
+        if (!(obj->InheritsFrom("TDirectory"))) continue;
+        
+        TDirectory* dir = (TDirectory*) obj;
+        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
 
         // Set branch addresses for source flags and pT
         tree->SetBranchAddress("fPtassoc", &pT);
@@ -160,17 +163,23 @@ void plot_source_PID(TString data_file, TString MC_name, TString source_flag) {
 
     // Load the dataframe keys
     TFile *file = TFile::Open(data_file);
-    auto *keys = file->GetListOfKeys();
+    TIter nextKey(file->GetListOfKeys());
+    TKey* key;
 
     // Initialize inv mass variables
     std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
 
     // Loop over dataframes
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
+    while ((key = (TKey*) nextKey())) {
 
-        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
+        std::cout << "Processing " << i << "/" << file->GetListOfKeys()->GetEntries()-1 << std::endl;
 
-        TTree *tree = get_tree((TKey*)keys->At(i), file);
+        // Load directory and tree
+        TObject* obj = key->ReadObj();
+        if (!(obj->InheritsFrom("TDirectory"))) continue;
+        
+        TDirectory* dir = (TDirectory*) obj;
+        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
                 
         // Prepare to read muon info
         Long64_t fMotherPDG;

@@ -3,15 +3,6 @@
 std::cout << std::fixed << std::setprecision(1);
 SetALICEStyle();
 
-TTree* get_tree(TKey *key, TFile *file) {
-
-    const char* dirName = key->GetName();
-    TDirectoryFile *dir = (TDirectoryFile*)file->Get(dirName);
-    TTree *tree = (TTree*)dir->Get("O2dqmuontable");
-
-    return tree;
-}
-
 struct triggerWithAssocs {
     ROOT::Math::PtEtaPhiMVector JPsiTrack;
     std::vector<ROOT::Math::PtEtaPhiMVector> associates;
@@ -36,13 +27,22 @@ void analysis_JPsi_data() {
     
     // Load the dataframe keys
     TFile *file = TFile::Open(data_file);
-    auto *keys = file->GetListOfKeys();
+
+    // Loop over all keys in the file (directories etc.)
+    TIter nextKey(file->GetListOfKeys());
+    TKey* key;
 
     std::vector<triggerWithAssocs> JPsiCandidates, backgroundCandidates;
 
     // Loop over dataframes
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
-        TTree *tree = get_tree((TKey*)keys->At(i), file);
+    while ((key = (TKey*) nextKey())) {
+
+        // Load directory and tree
+        TObject* obj = key->ReadObj();
+        if (!(obj->InheritsFrom("TDirectory"))) continue;
+
+        TDirectory* dir = (TDirectory*) obj;
+        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
 
         // Group muons by event index
         std::map<ULong64_t, std::vector<Long64_t>> muon_groups;
@@ -114,6 +114,9 @@ void analysis_JPsi_data() {
             
             JPsiCandidates.push_back(candidate);
         }
+
+        tree->ResetBranchAddresses();
+        delete tree;
     }
 
     std::vector<double> deltaEta_JPsi, deltaPhi_JPsi;

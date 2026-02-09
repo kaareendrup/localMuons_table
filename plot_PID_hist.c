@@ -4,21 +4,16 @@
 std::cout << std::fixed << std::setprecision(1);
 SetALICEStyle();
 
-TTree* get_tree(TKey *key, TFile *file) {
-
-    // Get the tree stored in the dataframe identified by the key
-    const char* dirName = key->GetName();
-    TDirectoryFile *dir = (TDirectoryFile*)file->Get(dirName);
-    TTree *tree = (TTree*)dir->Get("O2dqmuontable");
-
-    return tree;
-}
-
 void insert_unique(std::set<Long64_t> *uniqueValues, TKey *key, TFile *file, const char* branchName) {
 
     // Get dataframe tree and set mother/grandmother PDG branch address
     Long64_t PDG;
-    TTree *tree = get_tree(key, file);
+
+    TObject* obj = key->ReadObj();
+    if (!(obj->InheritsFrom("TDirectory"))) return;
+    TDirectory* dir = (TDirectory*) obj;
+    TTree *tree = (TTree*)dir->Get("O2dqmuontable");
+
     tree->SetBranchAddress(branchName, &PDG);
 
     // Loop over entries and insert unique values (absolute value for non-null PDG)
@@ -31,6 +26,7 @@ void insert_unique(std::set<Long64_t> *uniqueValues, TKey *key, TFile *file, con
         }
     }
 
+    tree->ResetBranchAddresses();
     delete tree;
 }
 
@@ -45,16 +41,17 @@ void plot_PID_hist(){
     
     // Load dataframe keys 
     TFile *file = TFile::Open(data_file);
-    auto *keys = file->GetListOfKeys();
+    TKey* key;
+    TIter nextKey1(file->GetListOfKeys());
     
     // Initialize counting variables
     std::set<Long64_t> uniqueValues_motherPDG, uniqueValues_grandmotherPDG;
     std::map<Long64_t, int> motherPDG_counts, grandmotherPDG_counts;
     
     // First loop over dataframes to find unique values
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
-        insert_unique(&uniqueValues_motherPDG, (TKey*)keys->At(i), file, "fMotherPDG");
-        insert_unique(&uniqueValues_grandmotherPDG, (TKey*)keys->At(i), file, "fGrandmotherPDG");
+    while ((key = (TKey*) nextKey1())) {
+        insert_unique(&uniqueValues_motherPDG, key, file, "fMotherPDG");
+        insert_unique(&uniqueValues_grandmotherPDG, key, file, "fGrandmotherPDG");
     }
     
     // Initialize counts to zero
@@ -65,15 +62,20 @@ void plot_PID_hist(){
         grandmotherPDG_counts[val] = 0;
     }
     
+    TIter nextKey2(file->GetListOfKeys());
+
     // Intialize varliables for PDG and dataframe tree
     Long64_t motherPDG, grandmotherPDG;
-    TTree *tree;
     
     // Second pass to count occurrences
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
+    while ((key = (TKey*) nextKey2())) {
 
         // Get the tree and set branch addresses
-        tree = get_tree((TKey*)keys->At(i), file);
+        TObject* obj = key->ReadObj();
+        if (!(obj->InheritsFrom("TDirectory"))) continue;
+        TDirectory* dir = (TDirectory*) obj;
+        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
+
         tree->SetBranchAddress("fMotherPDG", &motherPDG);
         tree->SetBranchAddress("fGrandmotherPDG", &grandmotherPDG);
 
@@ -92,6 +94,7 @@ void plot_PID_hist(){
             }
         }
 
+        tree->ResetBranchAddresses();
         delete tree;
     }
 

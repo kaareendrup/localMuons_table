@@ -3,15 +3,6 @@
 std::cout << std::fixed << std::setprecision(1);
 SetALICEStyle();
 
-TTree* get_tree(TKey *key, TFile *file) {
-
-    const char* dirName = key->GetName();
-    TDirectoryFile *dir = (TDirectoryFile*)file->Get(dirName);
-    TTree *tree = (TTree*)dir->Get("O2dqmuontable");
-
-    return tree;
-}
-
 void plot_pair_invmass(){
 
     TString data_name = "DQ_data";
@@ -32,14 +23,21 @@ void plot_pair_invmass(){
 
     // Load the dataframe keys
     TFile *file = TFile::Open(data_file);
-    auto *keys = file->GetListOfKeys();
+    TIter nextKey(file->GetListOfKeys());
+    TKey* key;
 
     // Initialize inv mass variables
     std::vector<Double_t> candidate_inv_masses;
 
     // Loop over dataframes
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
-        TTree *tree = get_tree((TKey*)keys->At(i), file);
+    while ((key = (TKey*) nextKey())) {
+        
+        // Load directory and tree
+        TObject* obj = key->ReadObj();
+        if (!(obj->InheritsFrom("TDirectory"))) continue;
+        
+        TDirectory* dir = (TDirectory*) obj;
+        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
 
         // Group muons by event index
         std::map<ULong64_t, std::vector<Long64_t>> muon_groups;

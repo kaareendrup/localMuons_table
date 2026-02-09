@@ -3,26 +3,17 @@
 std::cout << std::fixed << std::setprecision(1);
 SetALICEStyle();
 
-TTree* get_tree(TKey *key, TFile *file) {
-
-    const char* dirName = key->GetName();
-    TDirectoryFile *dir = (TDirectoryFile*)file->Get(dirName);
-    TTree *tree = (TTree*)dir->Get("O2dqmuontable");
-
-    return tree;
-}
-
 void plot_pT_split(){
 
-    // TString MC_name = "DQ";
+    TString MC_name = "DQ";
     // TString MC_name = "HF";
     // TString MC_name = "genpurp";
     // TString MC_name = "k4h_baseline";
     // TString MC_name = "k4h_cuts";
-    TString MC_name = "k4h_standalone";
+    // TString MC_name = "k4h_standalone";
     
-    // TString type = "reco";
-    TString type = "gen";
+    TString type = "reco";
+    // TString type = "gen";
 
     // bool showtype = false;
     bool showtype = true;
@@ -34,26 +25,29 @@ void plot_pT_split(){
 
     // Load the dataframe keys
     TFile *file = TFile::Open(data_file);
-    auto *keys = file->GetListOfKeys();
-    TTree *tree;
+    TIter nextKey(file->GetListOfKeys());
+    TKey* key;
 
     // Initialize inv mass variables
     // std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
     std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, LM_pT, noMC_pT, other_pT;
 
     // Loop over dataframes
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
+    while ((key = (TKey*) nextKey())) {
 
         std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
 
-        tree = get_tree((TKey*)keys->At(i), file);
+        TObject*obj = key->ReadObj();
+        if (!(obj->InheritsFrom("TDirectory"))) continue;
+        TDirectory* dir = (TDirectory*) obj;
+        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
 
         // Prepare to read muon info
         Long64_t fMotherPDG;
         float fPt;
         bool fIsProducedInTransport;
-        // tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
-        tree->SetBranchAddress("fGrandmotherPDG", &fMotherPDG);
+        tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+        // tree->SetBranchAddress("fGrandmotherPDG", &fMotherPDG);
         tree->SetBranchAddress("fPtassoc", &fPt);
         tree->SetBranchAddress("fIsProducedInTransport", &fIsProducedInTransport);
         

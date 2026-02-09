@@ -3,19 +3,9 @@
 std::cout << std::fixed << std::setprecision(1);
 SetALICEStyle();
 
-TTree* get_tree(TKey *key, TFile *file) {
-
-    const char* dirName = key->GetName();
-    TDirectoryFile *dir = (TDirectoryFile*)file->Get(dirName);
-    TTree *tree = (TTree*)dir->Get("O2dqmuontable");
-
-    return tree;
-}
-
 void plot_pair_invmass_split(){
 
     // TString MC_name = "DQ";
-    // TString MC_name = "DQ_gen";
     // TString MC_name = "HF";
     // TString MC_name = "genpurp";
     TString MC_name = "k4h_standalone";
@@ -34,14 +24,21 @@ void plot_pair_invmass_split(){
 
     // Load the dataframe keys
     TFile *file = TFile::Open(data_file);
-    auto *keys = file->GetListOfKeys();
+    TIter nextKey(file->GetListOfKeys());
+    TKey* key;
 
     // Initialize inv mass variables
     std::vector<Double_t> all_inv_masses, JPsi_inv_masses, Psi2S_inv_masses, other_inv_masses;
 
     // Loop over dataframes
-    for (int i = 0; i < keys->GetEntries()-1; ++i) {
-        TTree *tree = get_tree((TKey*)keys->At(i), file);
+    while ((key = (TKey*) nextKey())) {
+        
+        // Load directory and tree
+        TObject* obj = key->ReadObj();
+        if (!(obj->InheritsFrom("TDirectory"))) continue;
+        
+        TDirectory* dir = (TDirectory*) obj;
+        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
 
         // Group muons by event index
         std::map<ULong64_t, std::vector<Long64_t>> muon_groups;
