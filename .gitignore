@@ -7,6 +7,7 @@
 !plot_PID_hist_collapsed.c
 !plot_pT_split.c
 !inspect_sources.c
+!inspect_muon_mothers.c
 !analysis_JPsi_MC.c
 !analysis_JPsi_data.c
 !setALICEStyle.c
