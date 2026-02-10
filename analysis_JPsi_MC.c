@@ -29,6 +29,7 @@ void analysis_JPsi_MC() {
     int triggers_Psi2S = 0;
     std::vector<double> deltaEta_JPsi, deltaPhi_JPsi;
     std::vector<double> deltaEta_Psi2S, deltaPhi_Psi2S;
+    int dirCount = 0;
 
     // Loop over dataframes
     while ((key = (TKey*) nextKey())) {
@@ -39,6 +40,8 @@ void analysis_JPsi_MC() {
 
         TDirectory* dir = (TDirectory*) obj;
         TTree *tree = (TTree*)dir->Get("O2dqmuontable");
+
+        printf("Reading tracks from dir %d of %d: %s\n", dirCount, file->GetListOfKeys()->GetEntries(), dir->GetName());
 
         // Group muons by event index
         std::map<ULong64_t, std::vector<Long64_t>> muon_groups;
@@ -139,6 +142,8 @@ void analysis_JPsi_MC() {
 
         tree->ResetBranchAddresses();
         delete tree;
+
+        dirCount++;
     }
 
     // Plot histograms of deltaEta and deltaPhi for JPsi and Psi2S
@@ -153,7 +158,6 @@ void analysis_JPsi_MC() {
     deltaEtaHist_JPsi->Sumw2();
     deltaEtaHist_JPsi->Scale(1.0 / (triggers_JPsi*deltaEtaHist_JPsi->GetBinWidth(1)));
     deltaEtaHist_JPsi->Draw();
-    
 
     TH1F *deltaEtaHist_Psi2S = new TH1F("h2","Delta Eta Psi2S;#Delta#eta;#frac{1}{N_{trig}} dN/d#Delta#eta",n_bins,-5,3);
     deltaEtaHist_Psi2S->FillN(deltaEta_Psi2S.size(), deltaEta_Psi2S.data(), nullptr);
@@ -183,10 +187,10 @@ void analysis_JPsi_MC() {
     deltaPhiHist_Psi2S->Draw("SAME");
     
     // Scale ymax
-    deltaEtaHist_JPsi->SetMaximum(std::max(deltaEtaHist_JPsi->GetMaximum(), deltaEtaHist_Psi2S->GetMaximum()) * 1.2);
-    deltaEtaHist_Psi2S->SetMaximum(std::max(deltaEtaHist_JPsi->GetMaximum(), deltaEtaHist_Psi2S->GetMaximum()) * 1.2);
-    deltaPhiHist_JPsi->SetMaximum(std::max(deltaPhiHist_JPsi->GetMaximum(), deltaPhiHist_Psi2S->GetMaximum()) * 1.2);
-    deltaPhiHist_Psi2S->SetMaximum(std::max(deltaPhiHist_JPsi->GetMaximum(), deltaPhiHist_Psi2S->GetMaximum()) * 1.2);
+    deltaEtaHist_JPsi->SetMaximum(std::max(deltaEtaHist_JPsi->GetMaximum(), deltaEtaHist_Psi2S->GetMaximum()) * 1.5);
+    deltaEtaHist_Psi2S->SetMaximum(std::max(deltaEtaHist_JPsi->GetMaximum(), deltaEtaHist_Psi2S->GetMaximum()) * 1.5);
+    deltaPhiHist_JPsi->SetMaximum(std::max(deltaPhiHist_JPsi->GetMaximum(), deltaPhiHist_Psi2S->GetMaximum()) * 1.5);
+    deltaPhiHist_Psi2S->SetMaximum(std::max(deltaPhiHist_JPsi->GetMaximum(), deltaPhiHist_Psi2S->GetMaximum()) * 1.5);
 
     //Adjust label positions
     deltaEtaHist_JPsi->GetYaxis()->SetTitleOffset(1.6);
@@ -198,7 +202,7 @@ void analysis_JPsi_MC() {
         c1->cd(i);
         gPad->SetLeftMargin(0.23); 
         gPad->SetRightMargin(0.05); 
-        drawLabel(MC_name, 0.28, 0.85);
+        drawLabel(MC_name, type, 0.28, 0.88, false);
     }
 
     // Legend
@@ -207,7 +211,6 @@ void analysis_JPsi_MC() {
     legend->AddEntry(deltaEtaHist_JPsi, "J/#Psi", "l");
     legend->AddEntry(deltaEtaHist_Psi2S, "#Psi(2S)", "l");
     legend->Draw();
-
 
     TString out_name = TString::Format("results/%s/%s/deltaEtaDeltaPhi_JPsi_Psi2S_%s", MC_name.Data(), type.Data(), motherLabel.Data());
     out_name.ReplaceAll(".", "_");
