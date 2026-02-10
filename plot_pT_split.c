@@ -18,6 +18,9 @@ void plot_pT_split(){
     // bool showtype = false;
     bool showtype = true;
 
+    TString motherBranch = "fMotherPDG";
+    // TString motherBranch = "fGrandmotherPDG";
+
     TString data_file = "results/" + MC_name + "/" + type + "/muonAOD.root";
     int n_bins = 20;
     float range_min = 0;
@@ -31,23 +34,25 @@ void plot_pT_split(){
     // Initialize inv mass variables
     // std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
     std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, LM_pT, noMC_pT, other_pT;
+    int dirCount = 0;
 
     // Loop over dataframes
     while ((key = (TKey*) nextKey())) {
-
-        std::cout << "Processing " << i << "/" << keys->GetEntries()-1 << std::endl;
 
         TObject*obj = key->ReadObj();
         if (!(obj->InheritsFrom("TDirectory"))) continue;
         TDirectory* dir = (TDirectory*) obj;
         TTree *tree = (TTree*)dir->Get("O2dqmuontable");
+        
+        printf("Reading tracks from dir %d of %d: %s\n", dirCount, file->GetListOfKeys()->GetEntries(), dir->GetName());
 
         // Prepare to read muon info
         Long64_t fMotherPDG;
         float fPt;
         bool fIsProducedInTransport;
-        tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+        // tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
         // tree->SetBranchAddress("fGrandmotherPDG", &fMotherPDG);
+        tree->SetBranchAddress(motherBranch, &fMotherPDG);
         tree->SetBranchAddress("fPtassoc", &fPt);
         tree->SetBranchAddress("fIsProducedInTransport", &fIsProducedInTransport);
         
@@ -88,6 +93,8 @@ void plot_pT_split(){
 
         tree->ResetBranchAddresses();
         delete tree;
+
+        dirCount++;
     }
 
     // Plot histogram of pT distributions
@@ -175,7 +182,7 @@ void plot_pT_split(){
     // Style
     gPad->SetLogy();
     increaseMargins(c1);
-    pTHist->SetMaximum(8 * pTHist->GetMaximum());
+    pTHist->SetMaximum(1000 * pTHist->GetMaximum());
     pTHist->SetMinimum(1);
 
     // Legend
@@ -211,7 +218,7 @@ void plot_pT_split(){
         drawLabel(MC_name, "", 0.55, 0.89);
     }
 
-    TString out_name = TString::Format("results/%s/%s/muon_pT_split", MC_name.Data(), type.Data());
+    TString out_name = TString::Format("results/%s/%s/muon_pT_split_%s", MC_name.Data(), type.Data(), motherBranch.Data());
     out_name.ReplaceAll(".", "_");
     c1->SaveAs(out_name + ".png");
 }
