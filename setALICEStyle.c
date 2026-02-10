@@ -39,7 +39,7 @@ void increasePadMargins(TCanvas* c, int n) {
     }
 }
 
-void drawLabel(TString MC_name, TString type, Double_t x = 0.50, Double_t y = 0.85, TString extra_label = "") {
+void drawLabel(TString MC_name, TString type, Double_t x = 0.50, Double_t y = 0.85, bool ralign = true, TString extra_label = "") {
 
     TString label;
     std::vector<TString> details;
@@ -61,8 +61,10 @@ void drawLabel(TString MC_name, TString type, Double_t x = 0.50, Double_t y = 0.
     } else if (MC_name == "DQ") {
         label = "Pythia DQ prompt J/#Psi MC";
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
-        details.push_back("matchedQualityCuts");
-    } else if (MC_name == "HF") {
+        // details.push_back("matchedQualityCuts");
+        details.push_back("matchedMchMid");
+        details.push_back("muonQualityCuts");
+        } else if (MC_name == "HF") {
         label = "Pythia HF C#rightarrow#mu MC";
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
         details.push_back("matchedQualityCuts");
@@ -83,13 +85,22 @@ void drawLabel(TString MC_name, TString type, Double_t x = 0.50, Double_t y = 0.
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
         details.push_back("matchedMchMid");
         details.push_back("muonQualityCuts");
+    } else if (MC_name == "DQ_data") {
+        label = "2024 pp data";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("matchedMchMid");
+        details.push_back("muonQualityCuts");
     } else {
         label = MC_name;
     }
 
     TLatex latex;
     latex.SetNDC();
-    latex.SetTextAlign(31);
+    if (ralign) {
+        latex.SetTextAlign(31);
+    } else {
+        latex.SetTextAlign(11);
+    }
     latex.SetTextSize(0.04);
     latex.SetTextFont(42);
     latex.DrawLatex(x, y, label);
