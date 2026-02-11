@@ -6,6 +6,7 @@
 !plot_PID_hist.c
 !plot_PID_hist_collapsed.c
 !plot_pT_split.c
+!plot_pT_data.c
 !inspect_sources.c
 !inspect_muon_mothers.c
 !analysis_JPsi_MC.c
