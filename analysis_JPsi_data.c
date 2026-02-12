@@ -13,25 +13,28 @@ struct triggerWithAssocs {
 void analysis_JPsi_data() {
 
     // Data
-    TString data_name = "DQ";
-    // TString data_name = "DQ_data";
+    // TString data_name = "DQ";
+    TString data_name = "DQ_data";
     // TString data_name = "DQ_data_global";
     TString type = "reco";
     
     TString data_file = "results/" + data_name + "/" + type + "/muonAOD.root";
     
     // Cuts
-    // float pT_trigger_min = 1.0;
-    float pT_trigger_min = 0.0;
+    float pT_trigger_min = 1.0;
+    // float pT_trigger_min = 0.0;
     float pT_trigger_max = 20.0;
     // float pT_assoc_min = 3.0;
-    float pT_assoc_min = 1.0;
+    // float pT_trigger_leg_min = 2.0;
+    float pT_trigger_leg_min = 3.0;
+    float pT_trigger_leg_max = 20.0;
+    float pT_assoc_min = 3.0;
     float pT_assoc_max = 20.0;
 
     // Signal region
     int n_bins = 20;
-    float signal_range_min = 2.7;
-    float signal_range_max = 3.4;
+    float signal_range_min = 2.4;
+    float signal_range_max = 3.6;
     
     float signal_width = signal_range_max - signal_range_min;
     float background_range_min = signal_range_min - (signal_width / 2.0);
@@ -106,6 +109,10 @@ void analysis_JPsi_data() {
             // Find the muon pair with invariant mass closest to J/Psi mass
             for (size_t j = 0; j < muon_vectors.size(); ++j) {
                 for (size_t k = j + 1; k < muon_vectors.size(); ++k) {
+
+                    if (muon_vectors[j].Pt() < pT_trigger_leg_min || muon_vectors[j].Pt() > pT_trigger_leg_max) continue;
+                    if (muon_vectors[k].Pt() < pT_trigger_leg_min || muon_vectors[k].Pt() > pT_trigger_leg_max) continue;
+
                     auto track = muon_vectors[j] + muon_vectors[k];
 
                     // Replace candidate if closer to J/Psi mass
