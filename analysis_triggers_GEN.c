@@ -21,7 +21,7 @@ void analysis_triggers_GEN() {
     std::vector<double> deltaEta_JPsi_noncharm, deltaPhi_JPsi_noncharm;
     
     TFile* outFile = TFile::Open(TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data()), "RECREATE");
-    TTree* outTree = new TTree("Events", "JPsi events");
+    TTree* outTree = new TTree("Triggers", "JPsi triggers");
 
     std::string category; 
     double pT, eta, phi, mass;

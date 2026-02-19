@@ -54,7 +54,7 @@ void analysis_plot_data(TFile* file, TString data_name, TString type) {
 
     // Load trigger counts for normalization
     TTree *triggersTree = nullptr;
-    file->GetObject("Triggers", triggersTree);
+    file->GetObject("Correlations", triggersTree);
     std::map<std::string, int> trigger_counts = get_trigger_counts(triggersTree);
 
     // Load signal ranges and pT sigments from the "SignalRanges" tree
@@ -227,7 +227,7 @@ void analysis_plot_MC(TFile* file, TString data_name, TString type) {
     signalRangesTree->GetEntry(0); 
 
     TTree *triggersTree = nullptr;
-    file->GetObject("Triggers", triggersTree);
+    file->GetObject("Correlations", triggersTree);
     std::map<std::string, int> trigger_counts = get_trigger_counts(triggersTree);
     
     // Import histograms split by charm/non-charm and J-Psi/Psi(2S)

@@ -54,7 +54,7 @@ void analysis_correlations() {
 
     // Set outfile
     TFile* outFile = TFile::Open(TString::Format("results/%s/%s/analysis.root", data_name.Data(), type.Data()), "RECREATE");
-    TTree* triggerCounts = new TTree("Triggers", "JPsi triggers");
+    TTree* triggerCounts = new TTree("Correlations", "JPsi correlations");
     TTree* metaData = new TTree("MetaData", "Event selection metadata");
 
     // Define branches for output tree
@@ -85,9 +85,9 @@ void analysis_correlations() {
     }
 
     TTree *tree = nullptr;
-    file->GetObject("Events", tree);
+    file->GetObject("Triggers", tree);
     if (!tree) {
-        std::cerr << "Tree 'Events' not found\n";
+        std::cerr << "Tree 'Triggers' not found\n";
         return;
     }
 
