@@ -9,8 +9,10 @@
 !plot_pT_data.c
 !inspect_sources.c
 !inspect_muon_mothers.c
-!analysis_JPsi_MC.c
-!analysis_JPsi_data.c
+!analysis_triggers_GEN.c
+!analysis_triggers_data.c
+!analysis_correlations.c
+!analysis_plot.c
 !setALICEStyle.c
 !generate_download_script.py
 
