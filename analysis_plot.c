@@ -70,12 +70,6 @@ void analysis_plot_data(TFile* file, TString data_name, TString type) {
     signalRangesTree->SetBranchAddress("etaCuts", &etaCuts);
     signalRangesTree->GetEntry(0); 
 
-    // Load signal and background ranges
-    // float background_range_min = signal_ranges->at(0);
-    // float signal_range_min = signal_ranges->at(1);
-    // float signal_range_max = signal_ranges->at(2);
-    // float background_range_max = signal_ranges->at(3);
-
     /////////// Plot invariant mass distribution of candidates ///////////
     TCanvas *c0 = new TCanvas("c0", "Invariant Mass of Muon Pairs", 800, 600);
     TH1F* invMassHist = (TH1F*) file->Get("All_invMass");
