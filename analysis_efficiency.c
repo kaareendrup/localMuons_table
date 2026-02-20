@@ -1,7 +1,6 @@
 
 void analysis_efficiency() {
 
-
     TString MC_name = "DQ";
     // TString MC_name = "HF";
     // TString MC_name = "genpurp";
