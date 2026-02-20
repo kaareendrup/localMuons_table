@@ -22,6 +22,7 @@
 !generate_download_script_hyperloop.py
 !generate_download_script_lxplus.py
 !make_input_list.py
+!make_input_multiprocess.py
 
 !/helper_scripts/
 
