@@ -13,6 +13,7 @@
 !analysis_triggers_data.c
 !analysis_correlations.c
 !analysis_plot.c
+!analysis_efficiency.c
 !setALICEStyle.c
 !generate_download_script.py
 
