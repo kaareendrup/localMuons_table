@@ -20,7 +20,6 @@ void analysis_efficiency() {
     float signal_range_max = 3.4;
 
     int n_files = 94;
-    TString data_file;
     
     TFile* outFile = TFile::Open(TString::Format("results/%s/particles.root", MC_name.Data()), "RECREATE");
     TTree* outTreeMuonsReco = new TTree("MuonsReco", "Reconstructed Muons");
