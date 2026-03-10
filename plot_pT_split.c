@@ -5,15 +5,14 @@ SetALICEStyle();
 
 void plot_pT_split(){
 
-    TString MC_name = "DQ";
-    // TString MC_name = "HF";
-    // TString MC_name = "genpurp";
-    // TString MC_name = "k4h_baseline";
-    // TString MC_name = "k4h_cuts";
-    // TString MC_name = "k4h_standalone";
+    // TString MC_name = "f4d_global";
+    TString MC_name = "f4d_standalone";
+    // TString MC_name = "DQ";
     
     TString type = "reco";
     // TString type = "gen";
+
+    int n_files = 10;
 
     // bool showtype = false;
     bool showtype = true;
@@ -21,80 +20,92 @@ void plot_pT_split(){
     TString motherBranch = "fMotherPDG";
     // TString motherBranch = "fGrandmotherPDG";
 
-    TString data_file = "results/" + MC_name + "/" + type + "/muonAOD.root";
     int n_bins = 20;
     float range_min = 0;
     float range_max = 10;
-
-    // Load the dataframe keys
-    TFile *file = TFile::Open(data_file);
-    TIter nextKey(file->GetListOfKeys());
-    TKey* key;
-
+    
     // Initialize inv mass variables
     // std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
     std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, LM_pT, noMC_pT, other_pT;
-    int dirCount = 0;
+    int dirCount;
+    
+    for (int i = 0; i < n_files; ++i) {
 
-    // Loop over dataframes
-    while ((key = (TKey*) nextKey())) {
+        std::cout << "Processing file " << i << " of " << n_files << std::endl;
+        TString data_file = TString::Format("results/%s/%s/muonAOD%d.root", MC_name.Data(), type.Data(), i);
+        dirCount = 0;
 
-        TObject*obj = key->ReadObj();
-        if (!(obj->InheritsFrom("TDirectory"))) continue;
-        TDirectory* dir = (TDirectory*) obj;
-        TTree *tree = (TTree*)dir->Get("O2dqmuontable");
-        
-        printf("Reading tracks from dir %d of %d: %s\n", dirCount, file->GetListOfKeys()->GetEntries(), dir->GetName());
+        // Load the dataframe keys
+        TFile *file = TFile::Open(data_file);
+        TIter nextKey(file->GetListOfKeys());
+        TKey* key;
 
-        // Prepare to read muon info
-        Long64_t fMotherPDG;
-        float fPt;
-        bool fIsProducedInTransport;
-        // tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
-        // tree->SetBranchAddress("fGrandmotherPDG", &fMotherPDG);
-        tree->SetBranchAddress(motherBranch, &fMotherPDG);
-        tree->SetBranchAddress("fPtassoc", &fPt);
-        tree->SetBranchAddress("fIsProducedInTransport", &fIsProducedInTransport);
-        
-        // First pass: build groups of muons from the same event
-        Long64_t n = tree->GetEntries();
-        for (Long64_t i = 0; i < n; ++i) {
-            tree->GetEntry(i);
+        // Loop over dataframes
+        while ((key = (TKey*) nextKey())) {
 
-            all_pT.push_back(fPt);
+            TObject*obj = key->ReadObj();
+            if (!(obj->InheritsFrom("TDirectory"))) continue;
+            TDirectory* dir = (TDirectory*) obj;
+            TTree *tree = (TTree*)dir->Get("O2dqmuontable");
+            
+            // printf("Reading tracks from dir %d of %d: %s\n", dirCount, file->GetListOfKeys()->GetEntries(), dir->GetName());
 
-            if (std::abs(fMotherPDG) == 443) {
-                JPsi_pT.push_back(fPt);
-            } else if (std::abs(fMotherPDG) == 100443) {
-                Psi2S_pT.push_back(fPt);
-            } else if ((std::abs(fMotherPDG) >= 411 && std::abs(fMotherPDG) <= 445) || 
-                       (std::abs(fMotherPDG) >= 4101 && std::abs(fMotherPDG) <= 4444)) {
-                charm_pT.push_back(fPt);
-            } else if ((std::abs(fMotherPDG) >= 511 && std::abs(fMotherPDG) <= 557) || 
-                       (std::abs(fMotherPDG) >= 5101 && std::abs(fMotherPDG) <= 5554)) {
-                b_pT.push_back(fPt);
-            } else if (std::abs(fMotherPDG) == 321 || std::abs(fMotherPDG) == 311 || 
-                       std::abs(fMotherPDG) == 130 || std::abs(fMotherPDG) == 323 ) {
-                // K_pT.push_back(fPt);
-                LM_pT.push_back(fPt);
-            } else if (std::abs(fMotherPDG) == 211 || std::abs(fMotherPDG) == 113 || 
-                       std::abs(fMotherPDG) == 111 || std::abs(fMotherPDG) == 213 ) {
-                // Pi_pT.push_back(fPt);
-                LM_pT.push_back(fPt);
-            } else if (std::abs(fMotherPDG) == 221 || std::abs(fMotherPDG) == 331 || 
-                       std::abs(fMotherPDG) == 223 || std::abs(fMotherPDG) == 333 ) {
-                LM_pT.push_back(fPt);
-            } else if (fMotherPDG == -9999) {
-                noMC_pT.push_back(fPt);
-            } else {
-                other_pT.push_back(fPt);
+            // Prepare to read muon info
+            Long64_t fMotherPDG;
+            float fPt;
+            bool fIsProducedInTransport;
+            // tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+            // tree->SetBranchAddress("fGrandmotherPDG", &fMotherPDG);
+            tree->SetBranchAddress(motherBranch, &fMotherPDG);
+            tree->SetBranchAddress("fPtassoc", &fPt);
+            tree->SetBranchAddress("fIsProducedInTransport", &fIsProducedInTransport);
+            
+            // First pass: build groups of muons from the same event
+            Long64_t n = tree->GetEntries();
+            for (Long64_t i = 0; i < n; ++i) {
+                tree->GetEntry(i);
+
+                all_pT.push_back(fPt);
+
+                if (std::abs(fMotherPDG) == 443) {
+                    JPsi_pT.push_back(fPt);
+                } else if (std::abs(fMotherPDG) == 100443) {
+                    Psi2S_pT.push_back(fPt);
+                } else if ((std::abs(fMotherPDG) >= 411 && std::abs(fMotherPDG) <= 445) || 
+                        (std::abs(fMotherPDG) >= 4101 && std::abs(fMotherPDG) <= 4444)) {
+                    charm_pT.push_back(fPt);
+                } else if ((std::abs(fMotherPDG) >= 511 && std::abs(fMotherPDG) <= 557) || 
+                        (std::abs(fMotherPDG) >= 5101 && std::abs(fMotherPDG) <= 5554)) {
+                    b_pT.push_back(fPt);
+                } else if (std::abs(fMotherPDG) == 321 || std::abs(fMotherPDG) == 311 || 
+                        std::abs(fMotherPDG) == 130 || std::abs(fMotherPDG) == 323 ) {
+                    // K_pT.push_back(fPt);
+                    LM_pT.push_back(fPt);
+                } else if (std::abs(fMotherPDG) == 211 || std::abs(fMotherPDG) == 113 || 
+                        std::abs(fMotherPDG) == 111 || std::abs(fMotherPDG) == 213 ) {
+                    // Pi_pT.push_back(fPt);
+                    LM_pT.push_back(fPt);
+                } else if (std::abs(fMotherPDG) == 221 || std::abs(fMotherPDG) == 331 || 
+                        std::abs(fMotherPDG) == 223 || std::abs(fMotherPDG) == 333 ) {
+                    LM_pT.push_back(fPt);
+                } else if (fMotherPDG == -9999) {
+                    noMC_pT.push_back(fPt);
+                } else {
+                    other_pT.push_back(fPt);
+                }
             }
+
+            tree->ResetBranchAddresses();
+            delete tree;
+
+            dirCount++;
         }
 
-        tree->ResetBranchAddresses();
-        delete tree;
+        std::cout << std::endl;
 
-        dirCount++;
+        delete key;
+        file->Close();
+        delete file;
     }
 
     // Plot histogram of pT distributions
