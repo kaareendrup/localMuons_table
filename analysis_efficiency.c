@@ -63,6 +63,7 @@ void analysis_efficiency() {
             std::cout << TString::Format("Reading tracks from dir %d of %d: %s\r", dirCount, recoFile->GetListOfKeys()->GetEntries(), genDir->GetName()) << std::flush;
             
             float fPtJPsiGen, fPtMuonGen, fEtaJPsiGen, fEtaMuonGen;
+            Long64_t fMotherPDG;
 
             jpsiGenTree->SetBranchAddress("fPtassoc", &fPtJPsiGen);
             jpsiGenTree->SetBranchAddress("fEtaassoc", &fEtaJPsiGen);
@@ -75,9 +76,20 @@ void analysis_efficiency() {
 
             muonGenTree->SetBranchAddress("fPtassoc", &fPtMuonGen);
             muonGenTree->SetBranchAddress("fEtaassoc", &fEtaMuonGen);
+            muonGenTree->SetBranchAddress("fMotherPDG", &fMotherPDG);
             for (Long64_t i = 0; i < muonGenTree->GetEntries(); ++i) {
                 muonGenTree->GetEntry(i);
+
+                // Muons from charm and beauty cut
+                if (!((std::abs(fMotherPDG) == 443) || (std::abs(fMotherPDG) == 100443) ||
+                      (std::abs(fMotherPDG) >= 411 && std::abs(fMotherPDG) <= 445) || 
+                      (std::abs(fMotherPDG) >= 4101 && std::abs(fMotherPDG) <= 4444) || 
+                      (std::abs(fMotherPDG) >= 511 && std::abs(fMotherPDG) <= 557) || 
+                      (std::abs(fMotherPDG) >= 5101 && std::abs(fMotherPDG) <= 5554))) {
+                    continue;
+                }
                 if (fEtaMuonGen < eta_trigger_leg_min || fEtaMuonGen > eta_trigger_leg_max) continue; // Apply eta cut on muons
+                if (fPtMuonGen < pT_trigger_leg_min || fPtMuonGen > pT_trigger_leg_max) continue; // Apply pT cut on muons
                 pTMuonGen = fPtMuonGen;
                 outTreeMuonsGen->Fill();
             }
@@ -103,7 +115,10 @@ void analysis_efficiency() {
             // Group muons by event index
             std::map<ULong64_t, std::vector<Long64_t>> muon_groups;
             ULong64_t fEventIdx;
+            Long64_t fMotherPDG, fMotherID;
             muonRecoTree->SetBranchAddress("fEventIdx", &fEventIdx);
+            muonRecoTree->SetBranchAddress("fMotherPDG", &fMotherPDG);
+            muonRecoTree->SetBranchAddress("fMotherID", &fMotherID);
 
             // Prepare to read muon kinematics
             float fPt, fPhi, fEta;
@@ -115,6 +130,15 @@ void analysis_efficiency() {
             Long64_t n = muonRecoTree->GetEntries();
             for (Long64_t i = 0; i < n; ++i) {
                 muonRecoTree->GetEntry(i);
+
+                // Muons from charm and beauty cut
+                if (!((std::abs(fMotherPDG) == 443) || (std::abs(fMotherPDG) == 100443) ||
+                      (std::abs(fMotherPDG) >= 411 && std::abs(fMotherPDG) <= 445) || 
+                      (std::abs(fMotherPDG) >= 4101 && std::abs(fMotherPDG) <= 4444) || 
+                      (std::abs(fMotherPDG) >= 511 && std::abs(fMotherPDG) <= 557) || 
+                      (std::abs(fMotherPDG) >= 5101 && std::abs(fMotherPDG) <= 5554))) {
+                    continue;
+                }
                 if (fPt < pT_trigger_leg_min || fPt > pT_trigger_leg_max) continue;
                 if (fEta < eta_trigger_leg_min || fEta > eta_trigger_leg_max) continue;
 
@@ -138,21 +162,24 @@ void analysis_efficiency() {
                 if (muon_entries.size() < 2) continue; // Needs at least 2 muons to form a pair
 
                 std::vector<ROOT::Math::PtEtaPhiMVector> muon_vectors;
+                std::vector<Long64_t> motherIDs;
 
                 // Read muon kinematics and build 4-vectors
                 for (auto entry : muon_entries) {
                     muonRecoTree->GetEntry(entry);
                     ROOT::Math::PtEtaPhiMVector muon_vec(fPt, fEta, fPhi, 0.105658); // Muon mass ~105.658 MeV/c^2
                     muon_vectors.push_back(muon_vec);
+                    motherIDs.push_back(fMotherID);
                 }
 
                 // Find muon pairs with invariant mass closest to J/Psi mass
                 for (size_t j = 0; j < muon_vectors.size(); ++j) {
                     for (size_t k = j + 1; k < muon_vectors.size(); ++k) {
 
+                        if (!(motherIDs[j] == motherIDs[k])) continue; // Check same mother
                         auto track = muon_vectors[j] + muon_vectors[k];
 
-                        if (!(track.M() > signal_range_min && track.M() < signal_range_max)) continue; // Check if inv mass is in signal range
+                        // if (!(track.M() > signal_range_min && track.M() < signal_range_max)) continue; // Check if inv mass is in signal range
                         if (!((track.Eta() > eta_trigger_min && track.Eta() < eta_trigger_max) && (track.Pt() > 0))) continue; // Cuts
                         pTJPsiReco = track.Pt();
                         outTreeJPsiReco->Fill();
