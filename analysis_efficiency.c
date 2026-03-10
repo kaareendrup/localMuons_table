@@ -1,9 +1,7 @@
 
 void analysis_efficiency() {
 
-    TString MC_name = "DQ";
-    // TString MC_name = "HF";
-    // TString MC_name = "genpurp";
+    TString MC_name = "c3_global";
 
     float eta_trigger_min = -3.6;
     float eta_trigger_max = -2.5;
@@ -19,7 +17,7 @@ void analysis_efficiency() {
     float signal_range_min = 2.7;
     float signal_range_max = 3.4;
 
-    int n_files = 94;
+    int n_files = 25;
     
     TFile* outFile = TFile::Open(TString::Format("results/%s/particles.root", MC_name.Data()), "RECREATE");
     TTree* outTreeMuonsReco = new TTree("MuonsReco", "Reconstructed Muons");
@@ -37,8 +35,8 @@ void analysis_efficiency() {
     for (int i = 0; i < n_files; ++i) {
 
         std::cout << "Processing file " << i << " of " << n_files << std::endl;
-        TString reco_file = TString::Format("results/%s/reco/multi/muonAOD%d.root", MC_name.Data(), i);
-        TString gen_file = TString::Format("results/%s/gen/multi/muonAOD%d.root", MC_name.Data(), i);
+        TString reco_file = TString::Format("results/%s/reco/muonAOD%d.root", MC_name.Data(), i);
+        TString gen_file = TString::Format("results/%s/gen/muonAOD%d.root", MC_name.Data(), i);
     
         TFile *recoFile = TFile::Open(reco_file);
         TFile *genFile = TFile::Open(gen_file);
@@ -86,10 +84,6 @@ void analysis_efficiency() {
 
             dirCount++;
         }
-
-        outFile->cd();
-        outTreeJPsiGen->Write();
-        outTreeMuonsGen->Write();
 
         std::cout << std::endl;
         dirCount = 0;
@@ -181,6 +175,8 @@ void analysis_efficiency() {
     }
 
     outFile->cd();
+    outTreeJPsiGen->Write();
+    outTreeMuonsGen->Write();
     outTreeJPsiReco->Write();
     outTreeMuonsReco->Write();
     outFile->Close();
