@@ -5,11 +5,13 @@ import math
 
 def generate_input_multi(
     data_dir, 
+    config_dir,
     config_name, 
     outputdirector_name,
     command_base,
     n_jobs, 
-    n_files
+    n_files,
+    MC = True
 ):
 
     with open(data_dir+'/input_data.txt', 'r') as f:
@@ -25,8 +27,11 @@ def generate_input_multi(
     print('Total files:', n_files)
     print('Files per job:', files_per_job)
 
-    config_file = f"config/configuration_table_reader_withAssoc_{config_name}.json"
-    output_director_file = f"config/{outputdirector_name}.json"
+    if MC:
+        config_file = f"{config_dir}/configuration_dqEfficiency_withAssoc_{config_name}.json"
+    else:
+        config_file = f"{config_dir}/configuration_dqTableReader_withAssoc_{config_name}.json"
+    output_director_file = f"{config_dir}/{outputdirector_name}.json"
     command_base = command_base.replace("--configuration json://", f"--configuration json://{config_file}")
 
     # Set outdir
@@ -51,7 +56,7 @@ def generate_input_multi(
 
             data['OutputDirector']['resfile'] += str(j)
 
-            output_director_file_j = f'{out_dir}/OutputDirector_withAssoc_{config_name}_{j}.json'
+            output_director_file_j = f'{out_dir}/outputDirector_withAssoc_{config_name}_{j}.json'
             with open(output_director_file_j, 'w') as jf:
                 json.dump(data, jf, indent=4)
 
@@ -83,32 +88,48 @@ def generate_input_multi(
     print("To run, run:")
     print(f"bash {out_dir}/run.sh")
 
-##### DQ MC GEN Standalone
-# data_dir = "/media/kaareendrup/ec65dbb9-11dd-4abf-ae3e-f029466fe958/analysis/input_data/DQ"
-# config_name = "standalone_GEN"
-# outputdirector_name = "OutputDirector_GEN"
-# command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
+config_dir = "/home/kaareendrup/analysis/localMuons_table/config"
 
-##### DQ MC reco Standalone
-data_dir = "/media/kaareendrup/ec65dbb9-11dd-4abf-ae3e-f029466fe958/analysis/input_data/DQ"
-config_name = "standalone"
-outputdirector_name = "OutputDirector"
+data_dir = "/home/kaareendrup/analysis/input_data/c3_global"
+# config_name, outputdirector_name = "global_gen", "outputDirector_MC"
+config_name, outputdirector_name = "global_reco", "outputDirector_MC"
 command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
+MC = True
 
-n_files = -1
-# n_files = 16
-# n_files = 2
+# data_dir = "/home/kaareendrup/analysis/input_data/c3_standalone"
+# # config_name, outputdirector_name = "standalone_gen", "outputDirector_MC"
+# config_name, outputdirector_name = "standalone_reco", "outputDirector_MC"
+# command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
+# MC = True
 
-n_jobs = 100
-# n_jobs = 2
+# data_dir = "/home/kaareendrup/analysis/input_data/f4d_global"
+# config_name, outputdirector_name = "global_reco", "outputDirector_MC"
+# command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
+# MC = True
 
-##### DATA Standalone
-# data_dir = "/media/kaareendrup/ec65dbb9-11dd-4abf-ae3e-f029466fe958/analysis/input_data/DQ_data_standalone"
-# config_name = "DATA"
-# outputdirector_name = "OutputDirector"
+# data_dir = "/home/kaareendrup/analysis/input_data/f4d_standalone"
+# config_name, outputdirector_name = "standalone_reco", "outputDirector_MC"
+# command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
+# MC = True
+
+# data_dir = "/home/kaareendrup/analysis/input_data/DQ_data_standalone"
+# config_name, outputdirector_name = "standalone", "outputDirector_data"
 # command_base = "o2-analysis-dq-table-reader-with-assoc -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
+# MC = False
+
+# data_dir = "/home/kaareendrup/analysis/input_data/DQ_data_global"
+# config_name, outputdirector_name = "_global", "outputDirector_data"
+# command_base = "o2-analysis-dq-table-reader-with-assoc -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
+# MC = False
 
 # n_files = -1
-# n_jobs = 13
+n_files = 200
+# n_files = 8
+# n_files = 1
 
-generate_input_multi(data_dir, config_name, outputdirector_name,command_base, n_jobs, n_files)
+# n_jobs = 100
+n_jobs = 25
+# n_jobs = 1
+
+
+generate_input_multi(data_dir, config_dir, config_name, outputdirector_name,command_base, n_jobs, n_files, MC)
