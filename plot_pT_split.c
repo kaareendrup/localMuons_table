@@ -23,6 +23,9 @@ void plot_pT_split(){
     int n_bins = 20;
     float range_min = 0;
     float range_max = 10;
+
+    float eta_min = -3.6;
+    float eta_max = -2.5;
     
     // Initialize inv mass variables
     // std::vector<Double_t> all_pT, JPsi_pT, Psi2S_pT, charm_pT, b_pT, K_pT, Pi_pT, LM_pT, noMC_pT, other_pT;
@@ -52,18 +55,20 @@ void plot_pT_split(){
 
             // Prepare to read muon info
             Long64_t fMotherPDG;
-            float fPt;
+            float fPt, fEta;
             bool fIsProducedInTransport;
             // tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
             // tree->SetBranchAddress("fGrandmotherPDG", &fMotherPDG);
             tree->SetBranchAddress(motherBranch, &fMotherPDG);
             tree->SetBranchAddress("fPtassoc", &fPt);
+            tree->SetBranchAddress("fEtaassoc", &fEta);
             tree->SetBranchAddress("fIsProducedInTransport", &fIsProducedInTransport);
             
             // First pass: build groups of muons from the same event
             Long64_t n = tree->GetEntries();
             for (Long64_t i = 0; i < n; ++i) {
                 tree->GetEntry(i);
+                if (fEta < eta_min || fEta > eta_max) continue; // Apply eta cut
 
                 all_pT.push_back(fPt);
 
@@ -223,10 +228,14 @@ void plot_pT_split(){
     std::cout << "Muons with no MC info: " << noMC_pT.size() << std::endl;
     std::cout << "Other muons: " << other_pT.size() << std::endl;
 
+    std::vector<float> pTCuts = {0, 20, 0, 20};
+    std::vector<float> etaCuts = {-4, 4, eta_min, eta_max};
     if (showtype) {
-        drawLabel(MC_name, type, 0.55, 0.89);
+        // drawLabel(MC_name, type, 0.55, 0.89);
+        drawLabel_cuts(MC_name, type, &pTCuts, &etaCuts, 0.55, 0.89);
     } else {
-        drawLabel(MC_name, "", 0.55, 0.89);
+        // drawLabel(MC_name, "", 0.55, 0.89);
+        drawLabel_cuts(MC_name, "", &pTCuts, &etaCuts, 0.55, 0.89);
     }
 
     TString out_name = TString::Format("results/%s/%s/muon_pT_split_%s", MC_name.Data(), type.Data(), motherBranch.Data());
