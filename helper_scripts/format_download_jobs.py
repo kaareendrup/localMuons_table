@@ -1,7 +1,9 @@
 
 import re
 
-MC_name = 'DQ_data'
+# MC_name = 'DQ_data_global'
+MC_name = 'c3_global'
+# MC_name = 'c3_standalone'
 # MC_name = 'HF'
 # MC_name = 'genpurp'
 
@@ -23,3 +25,5 @@ with open('input_data/' + MC_name + '/' + out_file, 'w') as f:
     for line in lines:
         if line[-1] == 'Done':
             f.write(','.join(line) + '\n')
+
+print(f'Wrote {len(lines)} to input_data/{MC_name}/{out_file}')
