@@ -157,14 +157,34 @@ void drawLabel_cuts(
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
         details.push_back("matchedMchMid");
         details.push_back("muonQualityCuts");
+    } else if (MC_name == "f4d_global") {
+        label = "Pythia General purpose MC";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("muonQualityCutsGlobal");
+    } else if (MC_name == "f4d_standalone") {
+        label = "Pythia General purpose MC";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("muonQualityCutsStandalone");
+    } else if (MC_name == "c3_global") {
+        label = "Pythia DQ prompt J/#Psi MC";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("muonQualityCutsGlobal");
+    } else if (MC_name == "c3_standalone") {
+        label = "Pythia DQ prompt J/#Psi MC";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("muonQualityCutsStandalone");
     } else {
         label = MC_name;
     }
 
     int cuts_added = 0;
     // Add cut info
+    // Cuts are specified as:
+    // {pT_trigger_min, pT_trigger_max, pT_assoc_min, pT_assoc_max}
+    // {eta_trigger_min, eta_trigger_max, eta_assoc_min, eta_assoc_max}
     for (int i = 0; i < 2; ++i) {
-        TString particle = (i == 0) ? "trig" : "assoc";
+        // TString particle = (i == 0) ? "trig" : "assoc";
+        TString particle = (i == 0) ? "trig" : "#mu";
         TString pT_str = Form("p_{T,%s}", particle.Data());
         TString eta_str = Form("#eta_{%s}", particle.Data());
 
