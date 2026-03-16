@@ -29,14 +29,16 @@ void analysis_efficiency_plot() {
     inFile->GetObject("MuonsGen", muonsGen);
     inFile->GetObject("JPsiGen", JPsiGen);
 
-    double pTMuonReco, pTJPsiReco, pTMuonGen, pTJPsiGen;
+    double pTMuonReco, pTJPsiReco, pTMuonGen, pTJPsiGen, pTMuonReco_true;
 
     muonsReco->SetBranchAddress("pTMuon",  &pTMuonReco);
+    muonsReco->SetBranchAddress("pTMuon_true",  &pTMuonReco_true);
     JPsiReco->SetBranchAddress("pTJPsi",  &pTJPsiReco);
     muonsGen->SetBranchAddress("pTMuon",  &pTMuonGen);
     JPsiGen->SetBranchAddress("pTJPsi",  &pTJPsiGen);
 
     TH1F *pTMuonRecoHist = new TH1F("pTMuonRecoHist", "pTMuonRecoHist", n_bins, x_min, x_max);
+    TH1F *pTMuonRecoTrueHist = new TH1F("pTMuonRecoTrueHist", "pTMuonRecoTrueHist", n_bins, x_min, x_max);
     TH1F *pTJPsiRecoHist = new TH1F("pTJPsiRecoHist", "pTJPsiRecoHist", n_bins, x_min, x_max);
     TH1F *pTMuonGenHist = new TH1F("pTMuonGenHist", "pTMuonGenHist", n_bins, x_min, x_max);
     TH1F *pTJPsiGenHist = new TH1F("pTJPsiGenHist", "pTJPsiGenHist", n_bins, x_min, x_max);
@@ -46,6 +48,7 @@ void analysis_efficiency_plot() {
         std::cout << "Processing reco muons entry " << i+1 << " of " << muonsReco->GetEntries() << "\r" << std::flush;
         muonsReco->GetEntry(i);
         pTMuonRecoHist->Fill(pTMuonReco);
+        pTMuonRecoTrueHist->Fill(pTMuonReco_true);
     }
     std::cout << std::endl;
 
@@ -71,17 +74,22 @@ void analysis_efficiency_plot() {
     std::cout << std::endl;
 
     TH1F *muonEffHist = (TH1F*)pTMuonRecoHist->Clone("muonEffHist");
+    TH1F *muonEffTrueHist = (TH1F*)pTMuonRecoTrueHist->Clone("muonEffTrueHist");
     TH1F *JPsiEffHist = (TH1F*)pTJPsiRecoHist->Clone("JPsiEffHist");
 
     muonEffHist->Divide(pTMuonGenHist);
+    muonEffTrueHist->Divide(pTMuonGenHist);
     JPsiEffHist->Divide(pTJPsiGenHist);
 
     outFile->cd();
     pTMuonRecoHist->Write();
+    pTMuonRecoTrueHist->Write();
     pTJPsiRecoHist->Write();
     pTMuonGenHist->Write();
     pTJPsiGenHist->Write();
+
     muonEffHist->Write();
+    muonEffTrueHist->Write();
     JPsiEffHist->Write();
     outFile->Close();
 }

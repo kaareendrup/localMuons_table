@@ -42,11 +42,13 @@ void analysis_efficiency() {
     TTree* outTreeMuonsGen = new TTree("MuonsGen", "Generated Muons");
     TTree* outTreeJPsiGen = new TTree("JPsiGen", "Generated JPsi");
 
-    double pTJPsiReco, pTJPsiGen, pTMuonReco, pTMuonGen;
+    double pTJPsiReco, pTJPsiGen, pTMuonReco, pTMuonGen, pTMuonReco_true; // pTJPsiReco_true
 
     outTreeJPsiReco->Branch("pTJPsi",  &pTJPsiReco,  "pT/D");
+    // outTreeJPsiReco->Branch("pTJPsi",  &pTJPsiReco_true,  "pT/D"); // We don't have access to this yet
     outTreeJPsiGen->Branch("pTJPsi",  &pTJPsiGen,  "pT/D");
     outTreeMuonsReco->Branch("pTMuon",  &pTMuonReco,  "pT/D");
+    outTreeMuonsReco->Branch("pTMuon_true",  &pTMuonReco_true,  "pT/D");
     outTreeMuonsGen->Branch("pTMuon",  &pTMuonGen,  "pT/D");
 
     for (int i = 0; i < n_files; ++i) {
@@ -135,9 +137,9 @@ void analysis_efficiency() {
             muonRecoTree->SetBranchAddress("fGlobalIndexMCtrack", &fGlobalIndexMCtrack);
 
             // Prepare to read muon kinematics
-            float fPt, fPhi, fEta;
-            // muonRecoTree->SetBranchAddress("fPtassoc", &fPt);
-            muonRecoTree->SetBranchAddress("fPtassoctrue", &fPt);
+            float fPt, fPt_true, fPhi, fEta;
+            muonRecoTree->SetBranchAddress("fPtassoc", &fPt);
+            muonRecoTree->SetBranchAddress("fPtassoctrue", &fPt_true);
             muonRecoTree->SetBranchAddress("fPhiassoc", &fPhi);
             muonRecoTree->SetBranchAddress("fEtaassoc", &fEta);
             
@@ -156,6 +158,7 @@ void analysis_efficiency() {
                 muon_groups[fEventIdx].push_back(i);
                 seenMCMuons.insert(fGlobalIndexMCtrack);
                 pTMuonReco = fPt;
+                pTMuonReco_true = fPt_true;
                 outTreeMuonsReco->Fill();
             }
 
