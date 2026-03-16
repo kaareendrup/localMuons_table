@@ -72,5 +72,5 @@ void analysis_efficiency_plot_save() {
     drawHist(pTMuonRecoHist, "#mu p_{T};p_{T} (GeV/c);Counts", kBlue, 1.2, true);
     drawLabel_cuts(MC_name, "", &pTCuts, &etaCuts, 0.85, 0.59);
 
-    c3->SaveAs(TString::Format("results/%s/efficiency_plots.png", MC_name.Data()));
+    c3->SaveAs(TString::Format("results/%s/pT_plots.png", MC_name.Data()));
 }
