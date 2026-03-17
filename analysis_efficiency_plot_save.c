@@ -1,4 +1,6 @@
 #include "setALICEStyle.c"
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 std::cout << std::fixed << std::setprecision(1);
 SetALICEStyle();
@@ -19,9 +21,14 @@ void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, boo
 
 void analysis_efficiency_plot_save() {
 
-    TString MC_name = "c3_global";
-    // TString MC_name = "c3_standalone";
-    // TString MC_name = "c3_global_temp";
+    std::ifstream jsonFile("config_analysis.json");
+    json config;
+    jsonFile >> config;
+
+    // Data
+    std::string data_name = config["data_name"];
+    std::string muon_type = config["muon_type"];
+    TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
 
     TString in_file = TString::Format("results/%s/efficiency.root", MC_name.Data());
     TFile* file = TFile::Open(in_file, "READ");

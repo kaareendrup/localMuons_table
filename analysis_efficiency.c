@@ -1,4 +1,7 @@
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 bool charm_beauty_cut(Long64_t motherPDG) {
     return ((std::abs(motherPDG) == 443) || (std::abs(motherPDG) == 100443) ||
             (std::abs(motherPDG) >= 411 && std::abs(motherPDG) <= 445) || 
@@ -9,33 +12,28 @@ bool charm_beauty_cut(Long64_t motherPDG) {
 
 void analysis_efficiency() {
 
-    TString MC_name = "c3_global";
-    // TString MC_name = "c3_standalone";
-    // TString MC_name = "c3_global_temp";
+    std::ifstream jsonFile("config_analysis.json");
+    json config;
+    jsonFile >> config;
 
-    // float eta_trigger_min = -3.6;
-    // float eta_trigger_max = -2.5;
-    float eta_trigger_min = -10;
-    float eta_trigger_max = 10;
+    // Data
+    std::string data_name = config["data_name"];
+    std::string muon_type = config["muon_type"];
+    TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
 
     // Cuts
-    // float pT_trigger_leg_min = 0.7;
-    // float pT_trigger_leg_max = 20.0;
-    float pT_trigger_leg_min = 0.;
-    float pT_trigger_leg_max = 20.0;
-
-    float eta_trigger_leg_min = -3.6;
-    float eta_trigger_leg_max = -2.5;
-    // float eta_trigger_leg_min = -10;
-    // float eta_trigger_leg_max = 10;
-
-    // Signal range
-    // float signal_range_min = 2.7;
-    // float signal_range_max = 3.4;
-
-    int n_files = 25;
-    // int n_files = 1;
+    float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
+    float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
     
+    float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
+    float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
+    
+    float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
+    float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
+    
+    int n_files = config["n_files"];
+    
+    // Setup output file and trees
     TFile* outFile = TFile::Open(TString::Format("results/%s/particles.root", MC_name.Data()), "RECREATE");
     TTree* outTreeMuonsReco = new TTree("MuonsReco", "Reconstructed Muons");
     TTree* outTreeJPsiReco = new TTree("JPsiReco", "Reconstructed JPsi");
@@ -89,7 +87,7 @@ void analysis_efficiency() {
             jpsiGenTree->SetBranchAddress("fEtaassoc", &fEtaJPsiGen);
             for (Long64_t i = 0; i < jpsiGenTree->GetEntries(); ++i) {
                 jpsiGenTree->GetEntry(i);
-                if (fEtaJPsiGen < eta_trigger_min || fEtaJPsiGen > eta_trigger_max) continue; // Apply eta cut on J/Psi
+                if (fEtaJPsiGen < eta_JPsi_min || fEtaJPsiGen > eta_JPsi_max) continue; // Apply eta cut on J/Psi
                 pTJPsiGen = fPtJPsiGen;
                 outTreeJPsiGen->Fill();
             }
@@ -102,8 +100,8 @@ void analysis_efficiency() {
                 muonGenTree->GetEntry(i);
 
                 if (!(charm_beauty_cut(fMotherPDG) || charm_beauty_cut(fGrandmotherPDG))) continue;
-                if (fEtaMuonGen < eta_trigger_leg_min || fEtaMuonGen > eta_trigger_leg_max) continue; // Apply eta cut on muons
-                if (fPtMuonGen < pT_trigger_leg_min || fPtMuonGen > pT_trigger_leg_max) continue; // Apply pT cut on muons
+                if (fEtaMuonGen < eta_mu_min || fEtaMuonGen > eta_mu_max) continue; // Apply eta cut on muons
+                if (fPtMuonGen < pT_mu_min || fPtMuonGen > pT_mu_max) continue; // Apply pT cut on muons
                 pTMuonGen = fPtMuonGen;
                 outTreeMuonsGen->Fill();
             }
@@ -151,8 +149,8 @@ void analysis_efficiency() {
 
                 if (seenMCMuons.count(fGlobalIndexMCtrack)) continue; // Skip if we've already seen this MC track index
                 if (!(charm_beauty_cut(fMotherPDG) || charm_beauty_cut(fGrandmotherPDG))) continue;
-                if (fPt < pT_trigger_leg_min || fPt > pT_trigger_leg_max) continue;
-                if (fEta < eta_trigger_leg_min || fEta > eta_trigger_leg_max) continue;
+                if (fPt < pT_mu_min || fPt > pT_mu_max) continue;
+                if (fEta < eta_mu_min || fEta > eta_mu_max) continue;
 
                 // Save muon
                 muon_groups[fEventIdx].push_back(i);
@@ -193,7 +191,7 @@ void analysis_efficiency() {
                         auto track = muon_vectors[j] + muon_vectors[k];
 
                         // if (!(track.M() > signal_range_min && track.M() < signal_range_max)) continue; // Check if inv mass is in signal range
-                        if (!((track.Eta() > eta_trigger_min && track.Eta() < eta_trigger_max) && (track.Pt() > 0))) continue; // Cuts
+                        if (!((track.Eta() > eta_JPsi_min && track.Eta() < eta_JPsi_max) && (track.Pt() > 0))) continue; // Cuts
                         pTJPsiReco = track.Pt();
                         outTreeJPsiReco->Fill();
                     }

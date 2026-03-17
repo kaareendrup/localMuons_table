@@ -1,12 +1,21 @@
+
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 void analysis_efficiency_plot() {
 
-    TString MC_name = "c3_global";
-    // TString MC_name = "c3_standalone";
-    // TString MC_name = "c3_global_temp";
+    std::ifstream jsonFile("config_analysis.json");
+    json config;
+    jsonFile >> config;
 
-    int n_bins = 20;
-    float x_min = 0;
-    float x_max = 20;
+    // Data
+    std::string data_name = config["data_name"];
+    std::string muon_type = config["muon_type"];
+    TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
+
+    int n_bins = config["hists"]["n_bins_pT"];
+    float x_min = config["hists"]["pT_min"];
+    float x_max = config["hists"]["pT_max"];
 
     // Set outfile
     TFile* outFile = TFile::Open(TString::Format("results/%s/efficiency.root", MC_name.Data()), "RECREATE");
