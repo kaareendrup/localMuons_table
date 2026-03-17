@@ -89,47 +89,41 @@ def generate_input_multi(
     print(f"bash {out_dir}/run.sh")
 
 config_dir = "/home/kaareendrup/analysis/localMuons_table/config"
+input_dir = "/home/kaareendrup/analysis/input_data"
 
-data_dir = "/home/kaareendrup/analysis/input_data/c3_global"
-# config_name, outputdirector_name = "global_gen", "outputDirector_MC"
-config_name, outputdirector_name = "global_reco", "outputDirector_MC"
-command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
-MC = True
+############## ACTUAL CONFIGURABLES ##############
+data_name = "c3"
+# data_name = "f4d"
+# data_name = "DQ_data"
 
-# data_dir = "/home/kaareendrup/analysis/input_data/c3_standalone"
-# # config_name, outputdirector_name = "standalone_gen", "outputDirector_MC"
-# config_name, outputdirector_name = "standalone_reco", "outputDirector_MC"
-# command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
-# MC = True
+muon_type = "standalone"
+# muon_type = "global"
 
-# data_dir = "/home/kaareendrup/analysis/input_data/f4d_global"
-# config_name, outputdirector_name = "global_reco", "outputDirector_MC"
-# command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
-# MC = True
-
-# data_dir = "/home/kaareendrup/analysis/input_data/f4d_standalone"
-# config_name, outputdirector_name = "standalone_reco", "outputDirector_MC"
-# command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
-# MC = True
-
-# data_dir = "/home/kaareendrup/analysis/input_data/DQ_data_standalone"
-# config_name, outputdirector_name = "standalone", "outputDirector_data"
-# command_base = "o2-analysis-dq-table-reader-with-assoc -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
-# MC = False
-
-# data_dir = "/home/kaareendrup/analysis/input_data/DQ_data_global"
-# config_name, outputdirector_name = "_global", "outputDirector_data"
-# command_base = "o2-analysis-dq-table-reader-with-assoc -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
-# MC = False
+data_type = "reco"
+# data_type = "gen"
 
 # n_files = -1
 n_files = 200
 # n_files = 8
 # n_files = 1
 
-# n_jobs = 100
-n_jobs = 25
-# n_jobs = 1
+n_files_per_job = 8
+# n_files_per_job = 1
 
+############## AUTOMATIC ##############
+data_dir = f"{input_dir}/{data_name}_{muon_type}"
+config_name = f"{muon_type}_{data_type}"
+
+if data_name == "DQ_data":
+    MC = False
+    outputdirector_name = "outputDirector_data"
+    comman_base = "o2-analysis-dq-table-reader-with-assoc -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
+else:
+    MC = True
+    outputdirector_name = "outputDirector_MC"
+    command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
+
+assert n_files % n_files_per_job == 0, "N files must be divisible by files per job!"
+n_jobs = int(n_files / n_files_per_job)
 
 generate_input_multi(data_dir, config_dir, config_name, outputdirector_name,command_base, n_jobs, n_files, MC)
