@@ -1,9 +1,10 @@
 
-void analysis_triggers_data() {
+void analysis_triggers_reco() {
 
-    // TString data_name = "DQ";
-    TString data_name = "DQ_data";
+    TString data_name = "c3_global";
+    // TString data_name = "c3_standalone";
     // TString data_name = "DQ_data_global";
+    // TString data_name = "DQ_data_standalone";
 
     TString type = "reco";
 
@@ -48,7 +49,8 @@ void analysis_triggers_data() {
         }
 
         std::cout << "Processing file " << i << " of " << n_files << std::endl;
-        data_file = TString::Format("results/%s/%s/multi/muonAOD%d.root", data_name.Data(), type.Data(), i);
+        // data_file = TString::Format("results/%s/%s/multi/muonAOD%d.root", data_name.Data(), type.Data(), i);
+        data_file = TString::Format("results/%s/%s/muonAOD%d.root", data_name.Data(), type.Data(), i);
 
         // Load the dataframe keys
         TFile *file = TFile::Open(data_file);

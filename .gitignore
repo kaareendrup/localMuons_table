@@ -9,7 +9,7 @@
 !plot_pT_data.c
 
 !analysis_triggers_GEN.c
-!analysis_triggers_data.c
+!analysis_triggers_reco.c
 !analysis_correlations.c
 !analysis_plot.c
 !analysis_efficiency.c
