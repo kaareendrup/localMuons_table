@@ -22,6 +22,9 @@ void analysis_efficiency() {
     TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
 
     // Cuts
+    float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
+    float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
+
     float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
     float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
     
@@ -39,6 +42,7 @@ void analysis_efficiency() {
     TTree* outTreeJPsiReco = new TTree("JPsiReco", "Reconstructed JPsi");
     TTree* outTreeMuonsGen = new TTree("MuonsGen", "Generated Muons");
     TTree* outTreeJPsiGen = new TTree("JPsiGen", "Generated JPsi");
+    TTree* metaData = new TTree("MetaData", "Event selection metadata");
 
     double pTJPsiReco, pTJPsiGen, pTMuonReco, pTMuonGen, pTMuonReco_true; // pTJPsiReco_true
 
@@ -49,6 +53,13 @@ void analysis_efficiency() {
     outTreeMuonsReco->Branch("pTMuon_true",  &pTMuonReco_true,  "pT/D");
     outTreeMuonsGen->Branch("pTMuon",  &pTMuonGen,  "pT/D");
 
+    // Metadata branches
+    std::vector<float> pTCuts = {pT_JPsi_min, pT_JPsi_max, pT_mu_min, pT_mu_max};
+    std::vector<float> etaCuts = {eta_JPsi_min, eta_JPsi_max, eta_mu_min, eta_mu_max};
+    metaData->Branch("pTCuts", &pTCuts);
+    metaData->Branch("etaCuts", &etaCuts);
+    metaData->Fill();
+    
     for (int i = 0; i < n_files; ++i) {
 
         std::cout << "Processing file " << i << " of " << n_files << std::endl;
@@ -191,7 +202,7 @@ void analysis_efficiency() {
                         auto track = muon_vectors[j] + muon_vectors[k];
 
                         // if (!(track.M() > signal_range_min && track.M() < signal_range_max)) continue; // Check if inv mass is in signal range
-                        if (!((track.Eta() > eta_JPsi_min && track.Eta() < eta_JPsi_max) && (track.Pt() > 0))) continue; // Cuts
+                        if (!((track.Eta() > eta_JPsi_min && track.Eta() < eta_JPsi_max) && (track.Pt() > pT_JPsi_min && track.Pt() < pT_JPsi_max))) continue; // Cuts
                         pTJPsiReco = track.Pt();
                         outTreeJPsiReco->Fill();
                     }
@@ -217,5 +228,6 @@ void analysis_efficiency() {
     outTreeMuonsGen->Write();
     outTreeJPsiReco->Write();
     outTreeMuonsReco->Write();
+    metaData->Write();
     outFile->Close();
 }

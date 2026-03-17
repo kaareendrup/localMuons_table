@@ -8,7 +8,7 @@ void analysis_efficiency_plot() {
     json config;
     jsonFile >> config;
 
-    // Data
+    // Data config
     std::string data_name = config["data_name"];
     std::string muon_type = config["muon_type"];
     TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
@@ -19,8 +19,9 @@ void analysis_efficiency_plot() {
 
     // Set outfile
     TFile* outFile = TFile::Open(TString::Format("results/%s/efficiency.root", MC_name.Data()), "RECREATE");
-    TTree* pTHists = new TTree("pTHists", "pT histograms");
+    TTree* metaDataOut = new TTree("MetaData", "Event selection metadata");
 
+    // Set infile
     TString in_file = TString::Format("results/%s/particles.root", MC_name.Data());
     TFile* inFile = TFile::Open(in_file, "READ");
     if (!inFile || inFile->IsZombie()) {
@@ -28,24 +29,43 @@ void analysis_efficiency_plot() {
         return;
     }
 
+    // Get input trees and branches
     TTree* muonsReco = nullptr;
     TTree* JPsiReco = nullptr;
     TTree* muonsGen = nullptr;
     TTree* JPsiGen = nullptr;
+    TTree* metaData = nullptr;
 
     inFile->GetObject("MuonsReco", muonsReco);
     inFile->GetObject("JPsiReco", JPsiReco);
     inFile->GetObject("MuonsGen", muonsGen);
     inFile->GetObject("JPsiGen", JPsiGen);
+    inFile->GetObject("MetaData", metaData);
 
     double pTMuonReco, pTJPsiReco, pTMuonGen, pTJPsiGen, pTMuonReco_true;
 
-    muonsReco->SetBranchAddress("pTMuon",  &pTMuonReco);
-    muonsReco->SetBranchAddress("pTMuon_true",  &pTMuonReco_true);
-    JPsiReco->SetBranchAddress("pTJPsi",  &pTJPsiReco);
-    muonsGen->SetBranchAddress("pTMuon",  &pTMuonGen);
-    JPsiGen->SetBranchAddress("pTJPsi",  &pTJPsiGen);
+    muonsReco->SetBranchAddress("pTMuon", &pTMuonReco);
+    muonsReco->SetBranchAddress("pTMuon_true", &pTMuonReco_true);
+    JPsiReco->SetBranchAddress("pTJPsi", &pTJPsiReco);
+    muonsGen->SetBranchAddress("pTMuon", &pTMuonGen);
+    JPsiGen->SetBranchAddress("pTJPsi", &pTJPsiGen);
 
+    // Propagate metadata
+    std::vector<float>* pTCuts = nullptr;
+    std::vector<float>* etaCuts = nullptr;
+    metaData->SetBranchAddress("pTCuts", &pTCuts);
+    metaData->SetBranchAddress("etaCuts", &etaCuts);
+    metaData->GetEntry(0);
+
+    std::vector<float>* pTCutsOut = nullptr;
+    std::vector<float>* etaCutsOut = nullptr;
+    metaDataOut->Branch("pTCuts", &pTCutsOut);
+    metaDataOut->Branch("etaCuts", &etaCutsOut);
+    pTCutsOut = pTCuts;
+    etaCutsOut = etaCuts;
+    metaDataOut->Fill();
+
+    // Create output histograms
     TH1F *pTMuonRecoHist = new TH1F("pTMuonRecoHist", "pTMuonRecoHist", n_bins, x_min, x_max);
     TH1F *pTMuonRecoTrueHist = new TH1F("pTMuonRecoTrueHist", "pTMuonRecoTrueHist", n_bins, x_min, x_max);
     TH1F *pTJPsiRecoHist = new TH1F("pTJPsiRecoHist", "pTJPsiRecoHist", n_bins, x_min, x_max);
@@ -100,5 +120,7 @@ void analysis_efficiency_plot() {
     muonEffHist->Write();
     muonEffTrueHist->Write();
     JPsiEffHist->Write();
+
+    outFile->Write();
     outFile->Close();
 }
