@@ -1,0 +1,12 @@
+{ "OutputDirector": {
+ "debug_mode": true,
+ "resfile": "muonAOD",
+ "resfilemode": "RECREATE",
+ "OutputDescriptors": [
+   {
+     "table": "AOD/DQMUONTABLE/0"
+   }
+ ],
+ "ntfmerge": 1
+} }
+

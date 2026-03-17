@@ -12,7 +12,7 @@ bool charm_beauty_cut(Long64_t motherPDG) {
 
 void analysis_efficiency() {
 
-    std::ifstream jsonFile("config_analysis.json");
+    std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
     jsonFile >> config;
 

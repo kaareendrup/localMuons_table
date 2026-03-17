@@ -4,7 +4,7 @@ using json = nlohmann::json;
 
 void analysis_efficiency_plot() {
 
-    std::ifstream jsonFile("config_analysis.json");
+    std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
     jsonFile >> config;
 

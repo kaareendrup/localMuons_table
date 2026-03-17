@@ -21,7 +21,7 @@ void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, boo
 
 void analysis_efficiency_plot_save() {
 
-    std::ifstream jsonFile("config_analysis.json");
+    std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
     jsonFile >> config;
 

@@ -32,7 +32,10 @@
 !make_input_list.py
 !make_input_multiprocess.py
 
+!*.json
+
 !/helper_scripts/
 !/inspection/
+!/config/
 
 !.gitignore

@@ -1,0 +1,22 @@
+{
+    "data_name": "c3",
+    "muon_type": "global",
+    "n_files": 25, 
+    "cuts_mu": {
+        "pT_mu_min": 0.7,
+        "pT_mu_max": 20.0,
+        "eta_mu_min": -3.6,
+        "eta_mu_max": -2.5
+    },
+    "cuts_JPsi": {
+        "pT_JPsi_min": 0.0,
+        "pT_JPsi_max": 20.0,
+        "eta_JPsi_min": -10.0,
+        "eta_JPsi_max": 10.0
+    },
+    "hists": {
+        "n_bins_pT": 20,
+        "pT_min": 0.0,
+        "pT_max": 20.0
+    }
+}
