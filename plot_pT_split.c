@@ -5,8 +5,8 @@ SetALICEStyle();
 
 void plot_pT_split(){
 
-    // TString MC_name = "f4d_global";
-    TString MC_name = "f4d_standalone";
+    TString MC_name = "f4d_global";
+    // TString MC_name = "f4d_standalone";
     // TString MC_name = "DQ";
     
     TString type = "reco";
@@ -54,7 +54,7 @@ void plot_pT_split(){
             // printf("Reading tracks from dir %d of %d: %s\n", dirCount, file->GetListOfKeys()->GetEntries(), dir->GetName());
 
             // Prepare to read muon info
-            Long64_t fMotherPDG;
+            Long64_t fMotherPDG, fGlobalIndexMCtrack;
             float fPt, fEta;
             bool fIsProducedInTransport;
             // tree->SetBranchAddress("fMotherPDG", &fMotherPDG);
@@ -63,12 +63,17 @@ void plot_pT_split(){
             tree->SetBranchAddress("fPtassoc", &fPt);
             tree->SetBranchAddress("fEtaassoc", &fEta);
             tree->SetBranchAddress("fIsProducedInTransport", &fIsProducedInTransport);
-            
+            tree->SetBranchAddress("fGlobalIndexMCtrack", &fGlobalIndexMCtrack);
+
+            std::unordered_set<Long64_t> seenMCMuons;
+
             // First pass: build groups of muons from the same event
             Long64_t n = tree->GetEntries();
             for (Long64_t i = 0; i < n; ++i) {
                 tree->GetEntry(i);
                 if (fEta < eta_min || fEta > eta_max) continue; // Apply eta cut
+                if (seenMCMuons.count(fGlobalIndexMCtrack)) continue; // Skip if we've already seen this MC track index
+                seenMCMuons.insert(fGlobalIndexMCtrack);
 
                 all_pT.push_back(fPt);
 
