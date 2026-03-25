@@ -15,6 +15,8 @@
 !analysis_efficiency.c
 !analysis_efficiency_plot.c
 !analysis_efficiency_plot_save.c
+!analysis_JPsicandidates.c
+!analysis_JPsicandidates_plot.c
 !setALICEStyle.c
 
 !inspect_sources.c
