@@ -13,9 +13,7 @@ void analysis_efficiency_plot() {
     std::string muon_type = config["muon_type"];
     TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
 
-    int n_bins = config["hists"]["n_bins_pT"];
-    float x_min = config["hists"]["pT_min"];
-    float x_max = config["hists"]["pT_max"];
+    std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
 
     // Set outfile
     TFile* outFile = TFile::Open(TString::Format("results/%s/efficiency.root", MC_name.Data()), "RECREATE");
@@ -42,11 +40,12 @@ void analysis_efficiency_plot() {
     inFile->GetObject("JPsiGen", JPsiGen);
     inFile->GetObject("MetaData", metaData);
 
-    double pTMuonReco, pTJPsiReco, pTMuonGen, pTJPsiGen, pTMuonReco_true;
+    double pTMuonReco, pTJPsiReco, pTMuonGen, pTJPsiGen, pTMuonReco_true, pTJPsiReco_true;
 
     muonsReco->SetBranchAddress("pTMuon", &pTMuonReco);
     muonsReco->SetBranchAddress("pTMuon_true", &pTMuonReco_true);
     JPsiReco->SetBranchAddress("pTJPsi", &pTJPsiReco);
+    JPsiReco->SetBranchAddress("pTJPsi_true", &pTJPsiReco_true);
     muonsGen->SetBranchAddress("pTMuon", &pTMuonGen);
     JPsiGen->SetBranchAddress("pTJPsi", &pTJPsiGen);
 
@@ -66,11 +65,12 @@ void analysis_efficiency_plot() {
     metaDataOut->Fill();
 
     // Create output histograms
-    TH1F *pTMuonRecoHist = new TH1F("pTMuonRecoHist", "pTMuonRecoHist", n_bins, x_min, x_max);
-    TH1F *pTMuonRecoTrueHist = new TH1F("pTMuonRecoTrueHist", "pTMuonRecoTrueHist", n_bins, x_min, x_max);
-    TH1F *pTJPsiRecoHist = new TH1F("pTJPsiRecoHist", "pTJPsiRecoHist", n_bins, x_min, x_max);
-    TH1F *pTMuonGenHist = new TH1F("pTMuonGenHist", "pTMuonGenHist", n_bins, x_min, x_max);
-    TH1F *pTJPsiGenHist = new TH1F("pTJPsiGenHist", "pTJPsiGenHist", n_bins, x_min, x_max);
+    TH1F *pTMuonRecoHist = new TH1F("pTMuonRecoHist", "pTMuonRecoHist", pT_bins.size()-1, pT_bins.data());
+    TH1F *pTMuonRecoTrueHist = new TH1F("pTMuonRecoTrueHist", "pTMuonRecoTrueHist", pT_bins.size()-1, pT_bins.data());
+    TH1F *pTJPsiRecoHist = new TH1F("pTJPsiRecoHist", "pTJPsiRecoHist", pT_bins.size()-1, pT_bins.data());
+    TH1F *pTJPsiRecoTrueHist = new TH1F("pTJPsiRecoTrueHist", "pTJPsiRecoTrueHist", pT_bins.size()-1, pT_bins.data());
+    TH1F *pTMuonGenHist = new TH1F("pTMuonGenHist", "pTMuonGenHist", pT_bins.size()-1, pT_bins.data());
+    TH1F *pTJPsiGenHist = new TH1F("pTJPsiGenHist", "pTJPsiGenHist", pT_bins.size()-1, pT_bins.data());
     
     // Loop over entries and create the necessary histograms
     for (Long64_t i = 0; i < muonsReco->GetEntries(); ++i) {
@@ -85,6 +85,7 @@ void analysis_efficiency_plot() {
         std::cout << "Processing reco J/Psi entry " << i+1 << " of " << JPsiReco->GetEntries() << "\r" << std::flush;
         JPsiReco->GetEntry(i);
         pTJPsiRecoHist->Fill(pTJPsiReco);
+        pTJPsiRecoTrueHist->Fill(pTJPsiReco_true);
     }
     std::cout << std::endl;
 
@@ -105,21 +106,25 @@ void analysis_efficiency_plot() {
     TH1F *muonEffHist = (TH1F*)pTMuonRecoHist->Clone("muonEffHist");
     TH1F *muonEffTrueHist = (TH1F*)pTMuonRecoTrueHist->Clone("muonEffTrueHist");
     TH1F *JPsiEffHist = (TH1F*)pTJPsiRecoHist->Clone("JPsiEffHist");
+    TH1F *JPsiEffTrueHist = (TH1F*)pTJPsiRecoTrueHist->Clone("JPsiEffTrueHist");
 
     muonEffHist->Divide(pTMuonGenHist);
     muonEffTrueHist->Divide(pTMuonGenHist);
     JPsiEffHist->Divide(pTJPsiGenHist);
+    JPsiEffTrueHist->Divide(pTJPsiGenHist);
 
     outFile->cd();
     pTMuonRecoHist->Write();
     pTMuonRecoTrueHist->Write();
     pTJPsiRecoHist->Write();
+    pTJPsiRecoTrueHist->Write();
     pTMuonGenHist->Write();
     pTJPsiGenHist->Write();
 
     muonEffHist->Write();
     muonEffTrueHist->Write();
     JPsiEffHist->Write();
+    JPsiEffTrueHist->Write();
 
     outFile->Write();
     outFile->Close();
