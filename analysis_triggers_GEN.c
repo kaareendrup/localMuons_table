@@ -1,16 +1,34 @@
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 void analysis_triggers_GEN() {
 
-    TString MC_name = "DQ";
-    // TString MC_name = "HF";
-    // TString MC_name = "genpurp";
-
+    std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
+    json config;
+    jsonFile >> config;
+    
+    // Data
+    std::string data_name = config["data_name"];
+    std::string muon_type = config["muon_type"];
+    TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
     TString type = "gen";
 
-    float eta_trigger_min = -3.6;
-    float eta_trigger_max = -2.5;
+    // Cuts
+    float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
+    float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
 
-    int n_files = 94;
+    float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
+    float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
+    
+    float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
+    float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
+    
+    float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
+    float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
+    
+    int n_files = config["n_files"];
+
     TString data_file;
     
     int triggers_JPsi;
@@ -41,7 +59,8 @@ void analysis_triggers_GEN() {
     for (int i = 0; i < n_files; ++i) {
 
         std::cout << "Processing file " << i << " of " << n_files << std::endl;
-        data_file = TString::Format("results/%s/%s/multi/muonAOD%d.root", MC_name.Data(), type.Data(), i);
+        // data_file = TString::Format("results/%s/%s/multi/muonAOD%d.root", MC_name.Data(), type.Data(), i);
+        data_file = TString::Format("results/%s/%s/muonAOD%d.root", MC_name.Data(), type.Data(), i);
 
         // Load the dataframe keys
         TFile *file = TFile::Open(data_file);
@@ -118,7 +137,7 @@ void analysis_triggers_GEN() {
                     phi_assocs.clear();
                     MotherPID.clear();
 
-                    if (eta < eta_trigger_min || eta > eta_trigger_max) continue; // Apply eta cut on J/Psi
+                    if (eta < eta_JPsi_min || eta > eta_JPsi_max) continue; // Apply eta cut on J/Psi
 
                     for (auto muon_entry : muon_entries) {
                         muontree->GetEntry(muon_entry);
