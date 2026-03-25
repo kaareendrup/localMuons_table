@@ -34,6 +34,9 @@ void analysis_efficiency() {
     float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
     float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
     
+    float signal_range_min = config["signal_range"]["min"];
+    float signal_range_max = config["signal_range"]["max"];
+
     int n_files = config["n_files"];
     
     // Setup output file and trees
@@ -44,14 +47,20 @@ void analysis_efficiency() {
     TTree* outTreeJPsiGen = new TTree("JPsiGen", "Generated JPsi");
     TTree* metaData = new TTree("MetaData", "Event selection metadata");
 
-    double pTJPsiReco, pTJPsiGen, pTMuonReco, pTMuonGen, pTMuonReco_true; // pTJPsiReco_true
+    double pTJPsiReco, pTJPsiGen, pTMuonReco, pTMuonGen, pTMuonReco_true, pTJPsiReco_true;
+    double etaJPsiReco, etaJPsiGen, etaMuonReco, etaMuonGen; // etaMuonReco_true; // etaJPsiReco_true
 
     outTreeJPsiReco->Branch("pTJPsi",  &pTJPsiReco,  "pT/D");
-    // outTreeJPsiReco->Branch("pTJPsi",  &pTJPsiReco_true,  "pT/D"); // We don't have access to this yet
+    outTreeJPsiReco->Branch("etaJPsi",  &etaJPsiReco,  "eta/D");
+    outTreeJPsiReco->Branch("pTJPsi_true",  &pTJPsiReco_true,  "pT/D"); 
     outTreeJPsiGen->Branch("pTJPsi",  &pTJPsiGen,  "pT/D");
+    outTreeJPsiGen->Branch("etaJPsi",  &etaJPsiGen,  "eta/D");
     outTreeMuonsReco->Branch("pTMuon",  &pTMuonReco,  "pT/D");
+    outTreeMuonsReco->Branch("etaMuon",  &etaMuonReco,  "eta/D");
     outTreeMuonsReco->Branch("pTMuon_true",  &pTMuonReco_true,  "pT/D");
+    // outTreeMuonsReco->Branch("etaMuon_true",  &etaMuonReco_true,  "eta/D");
     outTreeMuonsGen->Branch("pTMuon",  &pTMuonGen,  "pT/D");
+    outTreeMuonsGen->Branch("etaMuon",  &etaMuonGen,  "eta/D");
 
     // Metadata branches
     std::vector<float> pTCuts = {pT_JPsi_min, pT_JPsi_max, pT_mu_min, pT_mu_max};
@@ -92,14 +101,18 @@ void analysis_efficiency() {
             std::cout << TString::Format("Reading tracks from dir %d of %d: %s\r", dirCount, recoFile->GetListOfKeys()->GetEntries(), genDir->GetName()) << std::flush;
             
             float fPtJPsiGen, fPtMuonGen, fEtaJPsiGen, fEtaMuonGen;
-            Long64_t fMotherPDG, fGrandmotherPDG;
+            Long64_t fMotherPDG, fGrandmotherPDG, fTrackPDGJPsiGen;
 
             jpsiGenTree->SetBranchAddress("fPtassoc", &fPtJPsiGen);
             jpsiGenTree->SetBranchAddress("fEtaassoc", &fEtaJPsiGen);
+            jpsiGenTree->SetBranchAddress("fTrackPDG", &fTrackPDGJPsiGen);
             for (Long64_t i = 0; i < jpsiGenTree->GetEntries(); ++i) {
                 jpsiGenTree->GetEntry(i);
+                if (std::abs(fTrackPDGJPsiGen) != 443) continue; // Ensure we're looking at J/Psi candidates for now
                 if (fEtaJPsiGen < eta_JPsi_min || fEtaJPsiGen > eta_JPsi_max) continue; // Apply eta cut on J/Psi
+                if (fPtJPsiGen < pT_JPsi_min || fPtJPsiGen > pT_JPsi_max) continue; // Apply pT cut on J/Psi
                 pTJPsiGen = fPtJPsiGen;
+                etaJPsiGen = fEtaJPsiGen;
                 outTreeJPsiGen->Fill();
             }
 
@@ -114,6 +127,7 @@ void analysis_efficiency() {
                 if (fEtaMuonGen < eta_mu_min || fEtaMuonGen > eta_mu_max) continue; // Apply eta cut on muons
                 if (fPtMuonGen < pT_mu_min || fPtMuonGen > pT_mu_max) continue; // Apply pT cut on muons
                 pTMuonGen = fPtMuonGen;
+                etaMuonGen = fEtaMuonGen;
                 outTreeMuonsGen->Fill();
             }
 
@@ -146,12 +160,14 @@ void analysis_efficiency() {
             muonRecoTree->SetBranchAddress("fGlobalIndexMCtrack", &fGlobalIndexMCtrack);
 
             // Prepare to read muon kinematics
-            float fPt, fPt_true, fPhi, fEta;
+            float fPt, fPt_true, fPt_mother, fPhi, fPhi_mother, fEta, fEta_mother;
             muonRecoTree->SetBranchAddress("fPtassoc", &fPt);
             muonRecoTree->SetBranchAddress("fPtassoctrue", &fPt_true);
+            muonRecoTree->SetBranchAddress("fPtmother", &fPt_mother);
             muonRecoTree->SetBranchAddress("fPhiassoc", &fPhi);
+            muonRecoTree->SetBranchAddress("fPhimother", &fPhi_mother);
             muonRecoTree->SetBranchAddress("fEtaassoc", &fEta);
-            
+            muonRecoTree->SetBranchAddress("fEtamother", &fEta_mother);
             std::unordered_set<Long64_t> seenMCMuons;
 
             // First pass: build groups of muons from the same event
@@ -168,6 +184,7 @@ void analysis_efficiency() {
                 seenMCMuons.insert(fGlobalIndexMCtrack);
                 pTMuonReco = fPt;
                 pTMuonReco_true = fPt_true;
+                etaMuonReco = fEta;
                 outTreeMuonsReco->Fill();
             }
 
@@ -184,13 +201,17 @@ void analysis_efficiency() {
                 if (muon_entries.size() < 2) continue; // Needs at least 2 muons to form a pair
 
                 std::vector<ROOT::Math::PtEtaPhiMVector> muon_vectors;
+                std::vector<ROOT::Math::PtEtaPhiMVector> muon_mother_vectors;
                 std::vector<Long64_t> motherIDs;
 
                 // Read muon kinematics and build 4-vectors
                 for (auto entry : muon_entries) {
                     muonRecoTree->GetEntry(entry);
+                    if (!(fMotherPDG == 443)) continue; // Only consider muons from J/Psi for the JPsi tree
                     ROOT::Math::PtEtaPhiMVector muon_vec(fPt, fEta, fPhi, 0.105658); // Muon mass ~105.658 MeV/c^2
                     muon_vectors.push_back(muon_vec);
+                    ROOT::Math::PtEtaPhiMVector muon_mother_vec(fPt_mother, fEta_mother, fPhi_mother, 3.096916); // J/Psi mass ~3.096916 GeV/c^2
+                    muon_mother_vectors.push_back(muon_mother_vec);
                     motherIDs.push_back(fMotherID);
                 }
 
@@ -200,10 +221,14 @@ void analysis_efficiency() {
 
                         if (!(motherIDs[j] == motherIDs[k])) continue; // Check same mother
                         auto track = muon_vectors[j] + muon_vectors[k];
+                        auto track_true = muon_mother_vectors[j];
 
-                        // if (!(track.M() > signal_range_min && track.M() < signal_range_max)) continue; // Check if inv mass is in signal range
+                        // if (!((track.M() > signal_range_min) && (track.M() < signal_range_max))) continue; // Apply invariant mass cut to select J/Psi candidates
                         if (!((track.Eta() > eta_JPsi_min && track.Eta() < eta_JPsi_max) && (track.Pt() > pT_JPsi_min && track.Pt() < pT_JPsi_max))) continue; // Cuts
+                        // if (!((track_true.Eta() > eta_JPsi_min && track_true.Eta() < eta_JPsi_max) && (track_true.Pt() > pT_JPsi_min && track_true.Pt() < pT_JPsi_max))) continue; // Cuts
                         pTJPsiReco = track.Pt();
+                        pTJPsiReco_true = track_true.Pt();
+                        etaJPsiReco = track.Eta ();
                         outTreeJPsiReco->Fill();
                     }
                 }
