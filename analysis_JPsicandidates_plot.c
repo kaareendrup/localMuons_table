@@ -174,7 +174,7 @@ void analysis_JPsicandidates_plot() {
     pT_reco_scale->Draw("same");
     
     setMax({pT_gen, pT_reco_scale});
-    TLegend *leg3 = new TLegend(0.4,0.5,0.9,0.9);
+    TLegend *leg3 = new TLegend(0.4,0.7,0.9,0.9);
     leg3->AddEntry(pT_gen, "Generated", "l");
     leg3->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
     leg3->SetBorderSize(0);
@@ -191,6 +191,13 @@ void analysis_JPsicandidates_plot() {
     pT_reco_scale->Draw("same");
     gPad->SetBottomMargin(0); // Remove bottom margin for top pad
     
+    TLegend *leg4 = new TLegend(0.4,0.7,0.9,0.9);
+    leg4->AddEntry(pT_gen, "Generated", "l");
+    leg4->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
+    leg4->SetBorderSize(0);
+    leg4->SetFillStyle(0);
+    leg4->Draw();
+
     c4->cd(2);
     gPad->SetPad(0,0,1,0.3);    // Bottom 30%
     gPad->SetTopMargin(0); // Remove top margin for bottom pad
@@ -198,8 +205,9 @@ void analysis_JPsicandidates_plot() {
     ratio_hist->Divide(pT_reco_scale);
     ratio_hist->Draw();
     gPad->SetGridy();
-    ratio_hist->SetMinimum(.6);
-    ratio_hist->SetMaximum(2.3);
+    ratio_hist->SetMinimum(.95);
+    ratio_hist->SetMaximum(1.08);
+    ratio_hist->GetYaxis()->SetTitle("Ratio");
     ratio_hist->GetYaxis()->SetTitleOffset(0.5);
     ratio_hist->GetYaxis()->SetTitleSize(0.09);
     ratio_hist->GetYaxis()->SetLabelSize(0.08);
