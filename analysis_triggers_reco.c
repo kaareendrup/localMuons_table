@@ -1,26 +1,35 @@
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 void analysis_triggers_reco() {
-
-    TString data_name = "c3_global";
-    // TString data_name = "c3_standalone";
-    // TString data_name = "DQ_data_global";
-    // TString data_name = "DQ_data_standalone";
-
+    
+    std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
+    json config;
+    jsonFile >> config;
+    
+    // Data
+    std::string data_name = config["data_name"];
+    std::string muon_type = config["muon_type"];
+    TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
     TString type = "reco";
 
-    int n_files = 13;
-    TString data_file;
-
-    // TString data_file = "results/" + data_name + "/" + type + "/muonAOD.root";
-    
     // Cuts
-    float pT_trigger_leg_min = 0.7;
-    float pT_trigger_leg_max = 20.0;
+    float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
+    float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
 
-    float eta_trigger_leg_min = -3.6;
-    float eta_trigger_leg_max = -2.5;
-  
-    TFile* outFile = TFile::Open(TString::Format("results/%s/%s/eventmuons.root", data_name.Data(), type.Data()), "RECREATE");
+    float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
+    float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
+    
+    float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
+    float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
+    
+    float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
+    float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
+    
+    int n_files = config["n_files"];
+
+    TFile* outFile = TFile::Open(TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data()), "RECREATE");
     TTree* outTree = new TTree("Triggers", "JPsi triggers");
 
     std::string category = "All"; 
@@ -38,7 +47,9 @@ void analysis_triggers_reco() {
     outTree->Branch("phi_assocs",  &phi_assocs);
     outTree->Branch("MotherPID", &MotherPID);
 
-    int exceptions[] = {5, 7, 8}; // Files with issues (e.g. missing trees)
+    // int exceptions[] = {5, 7, 8}; // Files with issues (e.g. missing trees)
+    int exceptions[] = {3}; // ONLY FOR STANDALONE FOR NOW
+    // int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
 
     for (int i = 0; i < n_files; ++i) {
 
@@ -49,8 +60,7 @@ void analysis_triggers_reco() {
         }
 
         std::cout << "Processing file " << i << " of " << n_files << std::endl;
-        // data_file = TString::Format("results/%s/%s/multi/muonAOD%d.root", data_name.Data(), type.Data(), i);
-        data_file = TString::Format("results/%s/%s/muonAOD%d.root", data_name.Data(), type.Data(), i);
+        TString data_file = TString::Format("results/%s/%s/muonAOD%d.root", MC_name.Data(), type.Data(), i);
 
         // Load the dataframe keys
         TFile *file = TFile::Open(data_file);
@@ -84,36 +94,29 @@ void analysis_triggers_reco() {
             }
 
             // Prepare to label
-            ULong64_t fGlobalIndexAssoc;
+            Long64_t fGlobalIndexAssoc;
             tree->SetBranchAddress("fGlobalIndexassoc", &fGlobalIndexAssoc);
 
             // Prepare to read muon kinematics
             float fPt, fPhi, fEta;
             tree->SetBranchAddress("fPtassoc", &fPt);
             tree->SetBranchAddress("fPhiassoc", &fPhi);
-            tree->SetBranchAddress("fEtaassoc", &fEta);
+            tree->SetBranchAddress("fEtaassoc", &fEta);s
 
             // Second pass: process each group
             for (auto& event : muon_groups) {
-
-                pT = -9999; eta = -9999; phi = -9999; mass = -9999;
-
-                pT_assocs.clear();
-                eta_assocs.clear();
-                phi_assocs.clear();
-                MotherPID.clear();
 
                 ULong64_t eventID = event.first;
                 auto& muon_entries = event.second;
 
                 if (muon_entries.size() < 2) continue; // Needs at least 2 muons to form a pair
 
-                std::vector<Long64_t> muon_motherIDs, muon_motherPDGs;
+                // std::vector<Long64_t> muon_motherIDs, muon_motherPDGs;
                 std::vector<ROOT::Math::PtEtaPhiMVector> muon_vectors;
 
                 // Read muon kinematics and build 4-vectors
                 for (auto entry : muon_entries) {
-                    tree->GetEntry(entry);
+                    tree->GetEntry(entry);s
                     ROOT::Math::PtEtaPhiMVector muon_vec(fPt, fEta, fPhi, 0.105658); // Muon mass ~105.658 MeV/c^2
                     muon_vectors.push_back(muon_vec);
                 }
@@ -121,46 +124,52 @@ void analysis_triggers_reco() {
                 // Store the indexes of the best candidate muon pair
                 ROOT::Math::PtEtaPhiMVector JPsiCandidate(-9999,0,0,-1); 
                 int idx_cand_1, idx_cand_2;
-
+                
                 // Find the muon pair with invariant mass closest to J/Psi mass
                 for (size_t j = 0; j < muon_vectors.size(); ++j) {
-                    if (muon_vectors[j].Pt() < pT_trigger_leg_min || muon_vectors[j].Pt() > pT_trigger_leg_max) continue;
-                    if (muon_vectors[j].Eta() < eta_trigger_leg_min || muon_vectors[j].Eta() > eta_trigger_leg_max) continue;
+                    if (muon_vectors[j].Pt() < pT_mu_min || muon_vectors[j].Pt() > pT_mu_max) continue;
+                    if (muon_vectors[j].Eta() < eta_mu_min || muon_vectors[j].Eta() > eta_mu_max) continue;
 
                     for (size_t k = j + 1; k < muon_vectors.size(); ++k) {
-                        if (muon_vectors[k].Pt() < pT_trigger_leg_min || muon_vectors[k].Pt() > pT_trigger_leg_max) continue;
-                        if (muon_vectors[k].Eta() < eta_trigger_leg_min || muon_vectors[k].Eta() > eta_trigger_leg_max) continue;
+                        if (muon_vectors[k].Pt() < pT_mu_min || muon_vectors[k].Pt() > pT_mu_max) continue;
+                        if (muon_vectors[k].Eta() < eta_mu_min || muon_vectors[k].Eta() > eta_mu_max) continue;
 
                         auto track = muon_vectors[j] + muon_vectors[k];
 
+                        pT_assocs.clear();
+                        eta_assocs.clear();
+                        phi_assocs.clear();
+                        MotherPID.clear();
+ 
                         // Replace candidate if closer to J/Psi mass
-                        if (std::abs(track.M() - 3.0969) < std::abs(JPsiCandidate.M() - 3.0969)) { // J/Psi mass ~3.0969 GeV/c^2
-                            JPsiCandidate = track;
-                            idx_cand_1 = j;
-                            idx_cand_2 = k;
+                        // if (std::abs(track.M() - 3.0969) < std::abs(JPsiCandidate.M() - 3.0969)) { // J/Psi mass ~3.0969 GeV/c^2
+                        //     JPsiCandidate = track;
+                        //     idx_cand_1 = j;
+                        //     idx_cand_2 = k;
+                        // }
+                        JPsiCandidate = track;
+                        idx_cand_1 = j;
+                        idx_cand_2 = k;
+                        if (JPsiCandidate.Eta() < eta_JPsi_min || JPsiCandidate.Eta() > eta_JPsi_max) continue; // Apply J/Psi eta cut
+                        if (JPsiCandidate.Pt() < pT_JPsi_min || JPsiCandidate.Pt() > pT_JPsi_max) continue; // Apply J/Psi pT cut
+
+                        pT = JPsiCandidate.Pt();
+                        eta = JPsiCandidate.Eta();
+                        phi = JPsiCandidate.Phi();
+                        mass = JPsiCandidate.M();
+
+                        // Loop over muons again to find assocs
+                        for (size_t a = 0; a < muon_vectors.size(); ++a) {
+                            if (a == idx_cand_1 || a == idx_cand_2) continue; // Skip the trigger muons
+                            auto assocTrack = muon_vectors[a];
+                            pT_assocs.push_back(assocTrack.Pt());
+                            eta_assocs.push_back(assocTrack.Eta());
+                            phi_assocs.push_back(assocTrack.Phi());
                         }
+
+                        outTree->Fill();
                     }
                 }
-
-                if (JPsiCandidate.Pt() < 0) continue; // No valid candidate found, can happen if no pairs pass the pT cut
-
-                // Create best candiddate from vector
-                pT = JPsiCandidate.Pt();
-                eta = JPsiCandidate.Eta();
-                phi = JPsiCandidate.Phi();
-                mass = JPsiCandidate.M();
-
-                // Loop over muons again to find assocs
-                for (size_t j = 0; j < muon_vectors.size(); ++j) {
-                    if (j == idx_cand_1 || j == idx_cand_2) continue; // Skip the trigger muons
-                    auto assocTrack = muon_vectors[j];
-                    pT_assocs.push_back(assocTrack.Pt());
-                    eta_assocs.push_back(assocTrack.Eta());
-                    phi_assocs.push_back(assocTrack.Phi());
-                }
-                
-                // Store candidate and associates
-                outTree->Fill();
             }
 
             tree->ResetBranchAddresses();
