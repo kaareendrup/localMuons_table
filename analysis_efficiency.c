@@ -1,4 +1,19 @@
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+#include <TMath.h>
+#include <Math/Vector4D.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <map>
+#include <cmath>
+
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -47,14 +62,17 @@ void analysis_efficiency() {
     TTree* outTreeJPsiGen = new TTree("JPsiGen", "Generated JPsi");
     TTree* metaData = new TTree("MetaData", "Event selection metadata");
 
-    double pTJPsiReco, pTJPsiGen, pTMuonReco, pTMuonGen, pTMuonReco_true, pTJPsiReco_true;
-    double etaJPsiReco, etaJPsiGen, etaMuonReco, etaMuonGen; // etaMuonReco_true; // etaJPsiReco_true
+    double pTJPsiReco, pTJPsiGen, pTJPsiReco_true, pTMuonReco, pTMuonGen, pTMuonReco_true;
+    double massJPsiReco, massJPsiGen;
+    double etaJPsiReco, etaJPsiGen, etaMuonReco, etaMuonGen; 
 
     outTreeJPsiReco->Branch("pTJPsi",  &pTJPsiReco,  "pT/D");
     outTreeJPsiReco->Branch("etaJPsi",  &etaJPsiReco,  "eta/D");
     outTreeJPsiReco->Branch("pTJPsi_true",  &pTJPsiReco_true,  "pT/D"); 
+    outTreeJPsiReco->Branch("massJPsi",  &massJPsiReco,  "mass/D");
     outTreeJPsiGen->Branch("pTJPsi",  &pTJPsiGen,  "pT/D");
     outTreeJPsiGen->Branch("etaJPsi",  &etaJPsiGen,  "eta/D");
+    outTreeJPsiGen->Branch("massJPsi",  &massJPsiGen,  "mass/D");
     outTreeMuonsReco->Branch("pTMuon",  &pTMuonReco,  "pT/D");
     outTreeMuonsReco->Branch("etaMuon",  &etaMuonReco,  "eta/D");
     outTreeMuonsReco->Branch("pTMuon_true",  &pTMuonReco_true,  "pT/D");
@@ -174,7 +192,7 @@ void analysis_efficiency() {
             for (Long64_t i = 0; i < muonRecoTree->GetEntries(); ++i) {
                 muonRecoTree->GetEntry(i);
 
-                if (seenMCMuons.count(fGlobalIndexMCtrack)) continue; // Skip if we've already seen this MC track index
+                // if (seenMCMuons.count(fGlobalIndexMCtrack)) continue; // Skip if we've already seen this MC track index
                 if (!(charm_beauty_cut(fMotherPDG) || charm_beauty_cut(fGrandmotherPDG))) continue;
                 if (fPt < pT_mu_min || fPt > pT_mu_max) continue;
                 if (fEta < eta_mu_min || fEta > eta_mu_max) continue;
@@ -229,6 +247,7 @@ void analysis_efficiency() {
                         pTJPsiReco = track.Pt();
                         pTJPsiReco_true = track_true.Pt();
                         etaJPsiReco = track.Eta ();
+                        massJPsiReco = track.M();
                         outTreeJPsiReco->Fill();
                     }
                 }

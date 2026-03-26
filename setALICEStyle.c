@@ -1,4 +1,6 @@
 
+#include "TLatex.h"
+
 void SetALICEStyle() {
     gStyle->SetOptStat(0);          // No stat box
     gStyle->SetOptTitle(0);         // No default title

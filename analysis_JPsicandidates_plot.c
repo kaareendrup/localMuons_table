@@ -1,10 +1,25 @@
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+#include <TMath.h>
+#include <Math/Vector4D.h>
+#include <TCanvas.h>
+#include <TH1F.h>
+#include <TLegend.h>
+#include <TStyle.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <iomanip>
+
 #include "setALICEStyle.c"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
-
-std::cout << std::fixed << std::setprecision(1);
-SetALICEStyle();
 
 void setMax(std::vector<TH1F*> hists) {
     // Adjust y-axis maximum to be 1.5 times the largest maximum among the provided histograms
@@ -133,7 +148,10 @@ TH1F *createInvMassHist(TString type, json config, TString MC_name) {
 }
     
 void analysis_JPsicandidates_plot() {
-        
+
+    std::cout << std::fixed << std::setprecision(1);
+    SetALICEStyle();
+
     std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
     jsonFile >> config;

@@ -1,4 +1,19 @@
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+#include <TMath.h>
+#include <Math/Vector4D.h>
+#include <TH1F.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <map>
+
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -12,6 +27,11 @@ void analysis_efficiency_plot() {
     std::string data_name = config["data_name"];
     std::string muon_type = config["muon_type"];
     TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
+    
+    float signal_range_min = config["signal_range"]["min"];
+    float signal_range_max = config["signal_range"]["max"];
+    float background_range_min = config["background_range"]["min"];
+    float background_range_max = config["background_range"]["max"];
 
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
 
@@ -41,13 +61,16 @@ void analysis_efficiency_plot() {
     inFile->GetObject("MetaData", metaData);
 
     double pTMuonReco, pTJPsiReco, pTMuonGen, pTJPsiGen, pTMuonReco_true, pTJPsiReco_true;
+    double massJPsiReco, massJPsiGen;
 
     muonsReco->SetBranchAddress("pTMuon", &pTMuonReco);
     muonsReco->SetBranchAddress("pTMuon_true", &pTMuonReco_true);
     JPsiReco->SetBranchAddress("pTJPsi", &pTJPsiReco);
+    JPsiReco->SetBranchAddress("massJPsi", &massJPsiReco);
     JPsiReco->SetBranchAddress("pTJPsi_true", &pTJPsiReco_true);
     muonsGen->SetBranchAddress("pTMuon", &pTMuonGen);
     JPsiGen->SetBranchAddress("pTJPsi", &pTJPsiGen);
+    JPsiGen->SetBranchAddress("massJPsi", &massJPsiGen);
 
     // Propagate metadata
     std::vector<float>* pTCuts = nullptr;
@@ -80,19 +103,24 @@ void analysis_efficiency_plot() {
         pTMuonRecoTrueHist->Fill(pTMuonReco_true);
     }
     std::cout << std::endl;
-
-    for (Long64_t i = 0; i < JPsiReco->GetEntries(); ++i) {
-        std::cout << "Processing reco J/Psi entry " << i+1 << " of " << JPsiReco->GetEntries() << "\r" << std::flush;
-        JPsiReco->GetEntry(i);
-        pTJPsiRecoHist->Fill(pTJPsiReco);
-        pTJPsiRecoTrueHist->Fill(pTJPsiReco_true);
-    }
-    std::cout << std::endl;
-
+    
     for (Long64_t i = 0; i < muonsGen->GetEntries(); ++i) {
         std::cout << "Processing gen muons entry " << i+1 << " of " << muonsGen->GetEntries() << "\r" << std::flush;
         muonsGen->GetEntry(i);
         pTMuonGenHist->Fill(pTMuonGen);
+    }
+    std::cout << std::endl;
+    
+    for (Long64_t i = 0; i < JPsiReco->GetEntries(); ++i) {
+        std::cout << "Processing reco J/Psi entry " << i+1 << " of " << JPsiReco->GetEntries() << "\r" << std::flush;
+        JPsiReco->GetEntry(i);
+        if (massJPsiReco > signal_range_min && massJPsiReco < signal_range_max) {
+            pTJPsiRecoHist->Fill(pTJPsiReco);
+            pTJPsiRecoTrueHist->Fill(pTJPsiReco_true);
+        } else if (massJPsiReco > background_range_min && massJPsiReco < background_range_max) {
+            pTJPsiRecoHist->Fill(pTJPsiReco, -1.0);
+            pTJPsiRecoTrueHist->Fill(pTJPsiReco_true, -1.0);
+        }
     }
     std::cout << std::endl;
 

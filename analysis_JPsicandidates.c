@@ -1,4 +1,19 @@
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+#include <TMath.h>
+#include <Math/Vector4D.h>
+#include <TH1F.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <map>
+
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -90,7 +105,7 @@ void analysis_JPsiHists(TString type) {
         if (type == "gen" && *category != "JPsi") continue; // Only consider J/Psi category for gen-level analysis
 
         TString category_str;
-        for (int j = 0; j < pT_bins.size()-1; ++j) {
+        for (size_t j = 0; j < pT_bins.size()-1; ++j) {
             if (pT >= pT_bins[j] && pT < pT_bins[j+1]) {
                 category_str = TString::Format("pT_%.1f_%.1f", pT_bins[j], pT_bins[j+1]);
                 fillHist(j, category_str + "_invMass", invMassHists, mass, n_bins_mass, 1.0, 5.0);   

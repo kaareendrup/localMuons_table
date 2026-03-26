@@ -1,4 +1,19 @@
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+#include <TMath.h>
+#include <Math/Vector4D.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <map>
+#include <cmath>
+
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -48,8 +63,8 @@ void analysis_triggers_reco() {
     outTree->Branch("MotherPID", &MotherPID);
 
     // int exceptions[] = {5, 7, 8}; // Files with issues (e.g. missing trees)
-    int exceptions[] = {3}; // ONLY FOR STANDALONE FOR NOW
-    // int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
+    // int exceptions[] = {3}; // ONLY FOR STANDALONE FOR NOW
+    int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
 
     for (int i = 0; i < n_files; ++i) {
 
@@ -101,7 +116,7 @@ void analysis_triggers_reco() {
             float fPt, fPhi, fEta;
             tree->SetBranchAddress("fPtassoc", &fPt);
             tree->SetBranchAddress("fPhiassoc", &fPhi);
-            tree->SetBranchAddress("fEtaassoc", &fEta);s
+            tree->SetBranchAddress("fEtaassoc", &fEta);
 
             // Second pass: process each group
             for (auto& event : muon_groups) {
@@ -116,14 +131,14 @@ void analysis_triggers_reco() {
 
                 // Read muon kinematics and build 4-vectors
                 for (auto entry : muon_entries) {
-                    tree->GetEntry(entry);s
+                    tree->GetEntry(entry);
                     ROOT::Math::PtEtaPhiMVector muon_vec(fPt, fEta, fPhi, 0.105658); // Muon mass ~105.658 MeV/c^2
                     muon_vectors.push_back(muon_vec);
                 }
 
                 // Store the indexes of the best candidate muon pair
                 ROOT::Math::PtEtaPhiMVector JPsiCandidate(-9999,0,0,-1); 
-                int idx_cand_1, idx_cand_2;
+                size_t idx_cand_1, idx_cand_2;
                 
                 // Find the muon pair with invariant mass closest to J/Psi mass
                 for (size_t j = 0; j < muon_vectors.size(); ++j) {

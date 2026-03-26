@@ -1,9 +1,25 @@
+
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+#include <TMath.h>
+#include <Math/Vector4D.h>
+#include <TCanvas.h>
+#include <TH1F.h>
+#include <TLegend.h>
+#include <TStyle.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <iomanip>
+
 #include "setALICEStyle.c"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
-
-std::cout << std::fixed << std::setprecision(1);
-SetALICEStyle();
 
 void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, bool same = false) {
     // Draw any histogram with consistent styling
@@ -20,6 +36,9 @@ void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, boo
 }
 
 void analysis_efficiency_plot_save() {
+
+    std::cout << std::fixed << std::setprecision(1);
+    SetALICEStyle();
 
     std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
