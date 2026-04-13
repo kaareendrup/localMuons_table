@@ -135,6 +135,14 @@ void analysis_JPsiHists(TString type) {
 }
 
 void analysis_JPsicandidates() {
+
+    std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
+    json config;
+    jsonFile >> config;
+    std::string data_name = config["data_name"];
+
     analysis_JPsiHists("reco");
-    analysis_JPsiHists("gen");
+    if (!(data_name == "DQ_data")) {
+        analysis_JPsiHists("gen");
+    }
 }
