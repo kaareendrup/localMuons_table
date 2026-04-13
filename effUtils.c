@@ -131,5 +131,4 @@ TH1F *createInvMassHist(TString type, json config, TString MC_name) {
     pT_sig_sub->Add(pT_bkg_low, -1);
     pT_sig_sub->Add(pT_bkg_high, -1);
     return pT_sig_sub;
-
 }
