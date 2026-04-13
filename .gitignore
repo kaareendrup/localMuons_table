@@ -17,7 +17,9 @@
 !analysis_efficiency_plot_save.c
 !analysis_JPsicandidates.c
 !analysis_JPsicandidates_plot.c
+!analysis_JPsicandidates_plot_data.c
 !setALICEStyle.c
+!effUtils.c
 
 !inspect_sources.c
 !inspect_muon_mothers.c

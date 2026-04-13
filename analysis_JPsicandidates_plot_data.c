@@ -1,0 +1,180 @@
+
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+#include <TMath.h>
+#include <Math/Vector4D.h>
+#include <TCanvas.h>
+#include <TH1F.h>
+#include <TLegend.h>
+#include <TStyle.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <iomanip>
+
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
+#include "effUtils.c"
+
+void setMax(std::vector<TH1F*> hists) {
+    // Adjust y-axis maximum to be 1.5 times the largest maximum among the provided histograms
+    double max_val = 0;
+    for (auto hist : hists) {
+        if (hist->GetMaximum() > max_val) {
+            max_val = hist->GetMaximum();
+        }
+    }
+    for (auto hist : hists) {
+        hist->SetMaximum(1.5 * max_val);
+    }
+}
+
+double getRapidity(double pT, double eta) {
+    double mJPsi = 3.096916; // J/Psi mass in GeV/c^2
+    return log((sqrt(pow(mJPsi, 2) + (pow(pT, 2) * pow(cosh(eta), 2))) + pT * sinh(eta)) / (sqrt(pow(mJPsi, 2) + pow(pT, 2))));
+}
+
+double getDeltaY(double pT, double eta_min, double eta_max) {
+
+    double y_min = getRapidity(pT, eta_min);
+    double y_max = getRapidity(pT, eta_max);
+    return y_max - y_min;
+}
+
+void analysis_JPsicandidates_plot_data() {
+
+    std::cout << std::fixed << std::setprecision(1);
+    SetALICEStyle();
+
+    // Load config
+    std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
+    json config;
+    jsonFile >> config;
+
+    std::string data_name = config["data_name"];
+    std::string muon_type = config["muon_type"];
+    std::string eff_source = config["data_eff_source"];
+    std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
+    double cuts_pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
+    double cuts_pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
+
+    TString data = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
+    TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
+
+    // Import metadata
+    TTree *metaTree = nullptr;
+    file->GetObject("MetaData", metaTree);
+    int *nEvents = nullptr;
+    metaTree->SetBranchAddress("nEvents", &nEvents);
+    metaTree->GetEntry(0);
+    
+    // Import hepdata points
+    std::string hepdata_name = config["hepdata_name"];
+    double crossSection = config["hepdata_crosssection"];
+
+    TString hepdata_file = TString::Format("results/%s.json", hepdata_name.c_str());
+    std::ifstream hepdata_json(hepdata_file);
+    json hepdata;
+    hepdata_json >> hepdata;
+
+    std::vector<double> hepdata_values;
+    std::vector<double> hepdata_errors;
+    for (const auto& point : hepdata["values"]) {
+        double pt_low  = std::stod(point["x"][0]["low"].get<std::string>());
+        double pt_high = std::stod(point["x"][0]["high"].get<std::string>());
+
+        const auto& y = point["y"][0];
+        double value = std::stod(y["value"].get<std::string>());
+
+        double err_stat = 0.0;
+        double err_sys  = 0.0;
+
+        for (const auto& err : y["errors"]) {
+            std::string label = err["label"];
+            double e = std::stod(err["symerror"].get<std::string>());
+
+            if (label == "stat") err_stat = e;
+            if (label == "sys")  err_sys  = e;
+        }
+
+        if (pt_low >= cuts_pT_JPsi_min && pt_high <= cuts_pT_JPsi_max) { // Only include points within the plotted range
+            hepdata_values.push_back(value);
+            hepdata_errors.push_back(sqrt(pow(err_stat, 2) + pow(err_sys, 2)));
+        }
+    }
+
+    // Create histograms
+    TH1F* pT_reco = createInvMassHist("reco", config, data);
+    
+    // Import efficiency
+    std::vector<double> efficiency = get_efficiency(config, MC_name);
+
+    TCanvas *c3 = new TCanvas("c3", "pT bin counts", 900, 400);
+    c3->Divide(2,1);
+    
+    // Create uncorrected histogram
+    c3->cd(1);
+    pT_reco->Draw();
+    TLegend *leg3s = new TLegend(0.4,0.6,0.9,0.9);
+    leg3s->AddEntry(pT_reco, "Reconstructed (not corrected)", "l");
+    leg3s->SetBorderSize(0);
+    leg3s->SetFillStyle(0);
+    leg3s->Draw();
+
+    // Create scaled histogram
+    c3->cd(2);
+
+    TH1F *pT_reco_scale = (TH1F*)pT_reco->Clone("pTscale");
+    for (int i = 1; i <= pT_reco_scale->GetNbinsX(); i++) {
+        double w   = efficiency[i-1];              // since ROOT bins start at 1
+        double c   = pT_reco_scale->GetBinContent(i);
+        double e   = pT_reco_scale->GetBinError(i);
+
+        pT_reco_scale->SetBinContent(i, c / w);
+        pT_reco_scale->SetBinError(i, e / w);              // scale uncertainties too
+    }
+    pT_reco_scale->Draw("same");
+    
+    setMax({pT_reco_scale});
+    TLegend *leg3 = new TLegend(0.4,0.7,0.9,0.9);
+    leg3->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
+    leg3->SetBorderSize(0);
+    leg3->SetFillStyle(0);
+    leg3->Draw();
+    c3->SaveAs(TString::Format("results/%s/pTspectrascaled.png", data.Data()));
+
+    // Create a canvas with two pads: top for the histogram, bottom for the ratio
+    TCanvas *c4 = new TCanvas("c4", "pT bin counts", 600, 600);
+    c4->Divide(1);
+  
+    c4->cd(1);
+    pT_reco_scale->Draw();
+    
+    TLegend *leg4 = new TLegend(0.4,0.7,0.9,0.9);
+    leg4->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
+    leg4->SetBorderSize(0);
+    leg4->SetFillStyle(0);
+    leg4->Draw();
+    
+    // Add hepdata points with error bars
+    TH1F *pTHepData = new TH1F("pTHepData", "pTHepData", pT_bins.size()-1, pT_bins.data());
+    for (size_t i = 0; i < hepdata_values.size(); ++i) {
+        pTHepData->SetBinContent(i+1, hepdata_values[i]);
+        pTHepData->SetBinError(i+1, hepdata_errors[i]);
+    }
+    pTHepData->Scale(crossSection*1e-6); // Scale by cross section if needed
+    // pTHepData->SetMarkerStyle(20);
+    pTHepData->SetMarkerColor(kBlack);
+    pTHepData->SetLineColor(kBlack);
+    pTHepData->Draw("E1 SAME");
+    
+    pT_reco_scale->SetMinimum(1e-5);
+    gPad->SetLogy();
+    c4->SaveAs(TString::Format("results/%s/pTspectracompare.png", data.Data()));
+}
