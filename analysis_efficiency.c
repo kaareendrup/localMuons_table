@@ -11,6 +11,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <set>
 #include <map>
 #include <cmath>
 
@@ -87,6 +88,7 @@ void analysis_efficiency() {
     metaData->Branch("etaCuts", &etaCuts);
     metaData->Fill();
     
+    // Loop over gen and reco files
     for (int i = 0; i < n_files; ++i) {
 
         std::cout << "Processing file " << i << " of " << n_files << std::endl;
@@ -104,8 +106,10 @@ void analysis_efficiency() {
         TKey* recoKey;
         
         int dirCount = 0;
+        int JPsiCount = 0;
+        int JPsiCount_mu = 0;
 
-        // Loop over gen dataframes
+        // Loop over GEN dataframes
         while ((genKey = (TKey*) nextGenKey())) {
 
             // Load directory and tree
@@ -119,43 +123,51 @@ void analysis_efficiency() {
             std::cout << TString::Format("Reading tracks from dir %d of %d: %s\r", dirCount, recoFile->GetListOfKeys()->GetEntries(), genDir->GetName()) << std::flush;
             
             float fPtJPsiGen, fPtMuonGen, fEtaJPsiGen, fEtaMuonGen;
-            Long64_t fMotherPDG, fGrandmotherPDG, fTrackPDGJPsiGen;
-
-            jpsiGenTree->SetBranchAddress("fPtassoc", &fPtJPsiGen);
-            jpsiGenTree->SetBranchAddress("fEtaassoc", &fEtaJPsiGen);
-            jpsiGenTree->SetBranchAddress("fTrackPDG", &fTrackPDGJPsiGen);
-            for (Long64_t i = 0; i < jpsiGenTree->GetEntries(); ++i) {
-                jpsiGenTree->GetEntry(i);
-                if (std::abs(fTrackPDGJPsiGen) != 443) continue; // Ensure we're looking at J/Psi candidates for now
-                if (fEtaJPsiGen < eta_JPsi_min || fEtaJPsiGen > eta_JPsi_max) continue; // Apply eta cut on J/Psi
-                if (fPtJPsiGen < pT_JPsi_min || fPtJPsiGen > pT_JPsi_max) continue; // Apply pT cut on J/Psi
-                pTJPsiGen = fPtJPsiGen;
-                etaJPsiGen = fEtaJPsiGen;
-                outTreeJPsiGen->Fill();
-            }
-
+            Long64_t fMotherPDG, fGrandmotherPDG, fTrackPDGJPsiGen, fGlobalIndexMCtrack, fMotherID;
+            std::set<Long64_t> MCMuonMothers;
+            
             muonGenTree->SetBranchAddress("fPtassoc", &fPtMuonGen);
             muonGenTree->SetBranchAddress("fEtaassoc", &fEtaMuonGen);
             muonGenTree->SetBranchAddress("fMotherPDG", &fMotherPDG);
             muonGenTree->SetBranchAddress("fGrandmotherPDG", &fGrandmotherPDG);
+            muonGenTree->SetBranchAddress("fMotherID", &fMotherID);
             for (Long64_t i = 0; i < muonGenTree->GetEntries(); ++i) {
                 muonGenTree->GetEntry(i);
-
+                
                 if (!(charm_beauty_cut(fMotherPDG) || charm_beauty_cut(fGrandmotherPDG))) continue;
+                MCMuonMothers.insert(fMotherID);
                 if (fEtaMuonGen < eta_mu_min || fEtaMuonGen > eta_mu_max) continue; // Apply eta cut on muons
                 if (fPtMuonGen < pT_mu_min || fPtMuonGen > pT_mu_max) continue; // Apply pT cut on muons
                 pTMuonGen = fPtMuonGen;
                 etaMuonGen = fEtaMuonGen;
                 outTreeMuonsGen->Fill();
             }
+            
+            jpsiGenTree->SetBranchAddress("fPtassoc", &fPtJPsiGen);
+            jpsiGenTree->SetBranchAddress("fEtaassoc", &fEtaJPsiGen);
+            jpsiGenTree->SetBranchAddress("fTrackPDG", &fTrackPDGJPsiGen);
+            jpsiGenTree->SetBranchAddress("fGlobalIndexMCtrack", &fGlobalIndexMCtrack);
+            for (Long64_t i = 0; i < jpsiGenTree->GetEntries(); ++i) {
+                jpsiGenTree->GetEntry(i);
+                if (std::abs(fTrackPDGJPsiGen) != 443) continue; // Ensure we're looking at J/Psi candidates for now
+                if (fEtaJPsiGen < eta_JPsi_min || fEtaJPsiGen > eta_JPsi_max) continue; // Apply eta cut on J/Psi
+                if (fPtJPsiGen < pT_JPsi_min || fPtJPsiGen > pT_JPsi_max) continue; // Apply pT cut on J/Psi
+                JPsiCount++;
+                if (!MCMuonMothers.count(fGlobalIndexMCtrack)) continue; 
+                pTJPsiGen = fPtJPsiGen;
+                etaJPsiGen = fEtaJPsiGen;
+                outTreeJPsiGen->Fill();
+                JPsiCount_mu++;
+            }
 
             dirCount++;
         }
+        std::cout << std::endl << TString::Format("%d J/Psis passed the eta and pT cuts, %d with muon daughters, which is %f%%", JPsiCount, JPsiCount_mu, (double)JPsiCount_mu / JPsiCount * 100) << std::endl;
 
         std::cout << std::endl;
         dirCount = 0;
 
-        // Loop over reco dataframes
+        // Loop over RECO dataframes
         while ((recoKey = (TKey*) nextRecoKey())) {
 
             // Load directory and tree
