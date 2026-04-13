@@ -65,8 +65,6 @@ void analysis_JPsiHists(TString type) {
 
     // Set outfile
     TFile* outFile = TFile::Open(TString::Format("results/%s/%s/invMassSpektra.root", MC_name.Data(), type.Data()), "RECREATE");
-    TTree* triggerCounts = new TTree("InvMAss", "JPsi invariant mass");
-    // TTree* metaData = new TTree("MetaData", "Event selection metadata");
     
     // Load events
     TString data_file = TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data());
@@ -92,6 +90,7 @@ void analysis_JPsiHists(TString type) {
     tree->SetBranchAddress("mass",  &mass);
     tree->SetBranchAddress("category", &category);
     
+    // Create histograms
     std::map<int, std::unique_ptr<TH1F>> invMassHists;
     TH1D* pT_sig = new TH1D("pT_sig", "pT of signal region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
     TH1D* pT_bkg_low = new TH1D("pT_bkg_low", "pT of lower background region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
@@ -123,6 +122,7 @@ void analysis_JPsiHists(TString type) {
     }
     std::cout << std::endl;
 
+    // Write data
     outFile->cd();
     for (auto& mHist : invMassHists) {
         mHist.second->Write();
@@ -130,7 +130,22 @@ void analysis_JPsiHists(TString type) {
     pT_sig->Write();
     pT_bkg_low->Write();
     pT_bkg_high->Write();
+    
+    // Propagate metadata
+    TTree *metaTree = nullptr;
+    file->GetObject("MetaData", metaTree);
+    int *nEvents = nullptr;
+    metaTree->SetBranchAddress("nEvents", &nEvents);
+    metaTree->GetEntry(0);
+    
+    int *nEventsOut = nullptr;
+    TTree* metaDataTree = new TTree("MetaData", "Metadata about the analysis");
+    metaDataTree->Branch("nEvents", &nEventsOut, "nEvents/I");
+    nEventsOut = nEvents; // Propagate the number of events to the new tree
+    std::cout << "Number of events: " << nEventsOut << std::endl;
+    metaDataTree->Fill(); // Fill with the propagated number of events
 
+    outFile->Write();
     outFile->Close();
 }
 

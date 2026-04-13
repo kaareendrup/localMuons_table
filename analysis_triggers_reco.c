@@ -51,6 +51,7 @@ void analysis_triggers_reco() {
     double pT, eta, phi, mass;
     std::vector<double> pT_assocs, eta_assocs, phi_assocs;
     std::vector<int> MotherPID;
+    int nEvents = 0;
 
     outTree->Branch("category", &category);
     outTree->Branch("pT",  &pT,  "pT/D");
@@ -62,9 +63,12 @@ void analysis_triggers_reco() {
     outTree->Branch("phi_assocs",  &phi_assocs);
     outTree->Branch("MotherPID", &MotherPID);
 
+    TTree* metaDataTree = new TTree("MetaData", "Metadata about the analysis");
+    metaDataTree->Branch("nEvents", &nEvents, "nEvents/I");
+
     // int exceptions[] = {5, 7, 8}; // Files with issues (e.g. missing trees)
-    // int exceptions[] = {3}; // ONLY FOR STANDALONE FOR NOW
-    int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
+    int exceptions[] = {3}; // ONLY FOR DATA FOR NOW
+    // int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
 
     for (int i = 0; i < n_files; ++i) {
 
@@ -107,6 +111,7 @@ void analysis_triggers_reco() {
                 tree->GetEntry(i);
                 muon_groups[fEventIdx].push_back(i);
             }
+            nEvents += muon_groups.size(); // Count unique events for metadata
 
             // Prepare to label
             Long64_t fGlobalIndexAssoc;
@@ -200,7 +205,11 @@ void analysis_triggers_reco() {
         delete file;
     }
 
+    // Fill metadata tree
+    metaDataTree->Fill();
+
     outFile->cd();
     outTree->Write();
+    metaDataTree->Write();
     outFile->Close();
 }
