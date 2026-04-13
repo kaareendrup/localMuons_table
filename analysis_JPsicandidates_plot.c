@@ -158,6 +158,8 @@ void analysis_JPsicandidates_plot() {
 
     std::string data_name = config["data_name"];
     std::string muon_type = config["muon_type"];
+    float JPsi_branching_ratio = config["branching_ratio"];
+
     TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
 
     TH1F* pT_reco = createInvMassHist("reco", config, MC_name);
@@ -189,6 +191,7 @@ void analysis_JPsicandidates_plot() {
         pT_reco_scale->SetBinContent(i, c / w);
         pT_reco_scale->SetBinError(i, e / w);              // scale uncertainties too
     }
+    pT_reco_scale->Scale(JPsi_branching_ratio);
     pT_reco_scale->Draw("same");
     
     setMax({pT_gen, pT_reco_scale});

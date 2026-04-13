@@ -33,6 +33,7 @@ void analysis_efficiency_plot() {
     float background_range_min = config["background_range"]["min"];
     float background_range_max = config["background_range"]["max"];
 
+    float JPsi_branching_ratio = config["branching_ratio"];
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
 
     // Set outfile
@@ -140,6 +141,9 @@ void analysis_efficiency_plot() {
     muonEffTrueHist->Divide(pTMuonGenHist);
     JPsiEffHist->Divide(pTJPsiGenHist);
     JPsiEffTrueHist->Divide(pTJPsiGenHist);
+
+    JPsiEffHist->Scale(JPsi_branching_ratio);
+    JPsiEffTrueHist->Scale(JPsi_branching_ratio);
 
     outFile->cd();
     pTMuonRecoHist->Write();
