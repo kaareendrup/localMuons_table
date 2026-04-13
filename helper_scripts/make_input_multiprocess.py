@@ -92,8 +92,8 @@ config_dir = "/home/kaareendrup/analysis/localMuons_table/config"
 input_dir = "/home/kaareendrup/analysis/input_data"
 
 ############## ACTUAL CONFIGURABLES ##############
-data_name = "c3"
-# data_name = "f4d"
+# data_name = "c3"
+data_name = "f4d"
 # data_name = "DQ_data"
 
 muon_type = "standalone"
@@ -103,12 +103,14 @@ data_type = "reco"
 # data_type = "gen"
 
 # n_files = -1
-n_files = 200
-# n_files = 8
+n_files = 740
+# n_files = 400
+# n_files = 200
+# n_files = 16
 # n_files = 1
 
-n_files_per_job = 8
-# n_files_per_job = 1
+# n_files_per_job = 8
+n_files_per_job = 4
 
 ############## AUTOMATIC ##############
 data_dir = f"{input_dir}/{data_name}_{muon_type}"
@@ -117,7 +119,7 @@ config_name = f"{muon_type}_{data_type}"
 if data_name == "DQ_data":
     MC = False
     outputdirector_name = "outputDirector_data"
-    comman_base = "o2-analysis-dq-table-reader-with-assoc -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
+    command_base = "o2-analysis-dq-table-reader-with-assoc -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
 else:
     MC = True
     outputdirector_name = "outputDirector_MC"
