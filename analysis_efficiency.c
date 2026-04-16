@@ -18,13 +18,7 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-bool charm_beauty_cut(Long64_t motherPDG) {
-    return ((std::abs(motherPDG) == 443) || (std::abs(motherPDG) == 100443) ||
-            (std::abs(motherPDG) >= 411 && std::abs(motherPDG) <= 445) || 
-            (std::abs(motherPDG) >= 4101 && std::abs(motherPDG) <= 4444) || 
-            (std::abs(motherPDG) >= 511 && std::abs(motherPDG) <= 557) || 
-            (std::abs(motherPDG) >= 5101 && std::abs(motherPDG) <= 5554));
-}
+#include "utils/data.c"
 
 void analysis_efficiency() {
 
@@ -153,7 +147,7 @@ void analysis_efficiency() {
                 if (fEtaJPsiGen < eta_JPsi_min || fEtaJPsiGen > eta_JPsi_max) continue; // Apply eta cut on J/Psi
                 if (fPtJPsiGen < pT_JPsi_min || fPtJPsiGen > pT_JPsi_max) continue; // Apply pT cut on J/Psi
                 JPsiCount++;
-                if (!MCMuonMothers.count(fGlobalIndexMCtrack)) continue; 
+                // if (!MCMuonMothers.count(fGlobalIndexMCtrack)) continue; // Check if this J/Psi has a muon daughter that passed the cuts
                 pTJPsiGen = fPtJPsiGen;
                 etaJPsiGen = fEtaJPsiGen;
                 outTreeJPsiGen->Fill();

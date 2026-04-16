@@ -17,23 +17,9 @@
 #include <string>
 #include <iomanip>
 
-#include "setALICEStyle.c"
+#include "utils/plots.c"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
-
-void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, bool same = false) {
-    // Draw any histogram with consistent styling
-    hist->SetLineColor(line_color);
-    hist->SetLineWidth(2);
-    hist->SetTitle(title);
-    // hist->Scale(scale_factor);
-    hist->SetMinimum(0);
-    if (same) {
-        hist->Draw("SAME");
-    } else {
-        hist->Draw();
-    }
-}
 
 void analysis_efficiency_plot_save() {
 

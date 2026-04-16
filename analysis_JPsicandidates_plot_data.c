@@ -20,32 +20,7 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-#include "effUtils.c"
-
-void setMax(std::vector<TH1F*> hists) {
-    // Adjust y-axis maximum to be 1.5 times the largest maximum among the provided histograms
-    double max_val = 0;
-    for (auto hist : hists) {
-        if (hist->GetMaximum() > max_val) {
-            max_val = hist->GetMaximum();
-        }
-    }
-    for (auto hist : hists) {
-        hist->SetMaximum(1.5 * max_val);
-    }
-}
-
-double getRapidity(double pT, double eta) {
-    double mJPsi = 3.096916; // J/Psi mass in GeV/c^2
-    return log((sqrt(pow(mJPsi, 2) + (pow(pT, 2) * pow(cosh(eta), 2))) + pT * sinh(eta)) / (sqrt(pow(mJPsi, 2) + pow(pT, 2))));
-}
-
-double getDeltaY(double pT, double eta_min, double eta_max) {
-
-    double y_min = getRapidity(pT, eta_min);
-    double y_max = getRapidity(pT, eta_max);
-    return y_max - y_min;
-}
+#include "utils/plots.c"
 
 void analysis_JPsicandidates_plot_data() {
 
@@ -61,18 +36,26 @@ void analysis_JPsicandidates_plot_data() {
     std::string muon_type = config["muon_type"];
     std::string eff_source = config["data_eff_source"];
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
-    double cuts_pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
-    double cuts_pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
+    float cuts_pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
+    float cuts_pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
+    float cuts_eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
+    float cuts_eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
+    std::vector<float> pT_JPsi_cuts = {cuts_pT_JPsi_min, cuts_pT_JPsi_max, 0, 20};
+    std::vector<float> eta_JPsi_cuts = {cuts_eta_JPsi_min, cuts_eta_JPsi_max, -4.0, 4.0};
 
     TString data = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
     TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
 
     // Import metadata
+    TString in_file = TString::Format("results/%s/reco/invMassSpektra.root", data.Data());
+    TFile* file = TFile::Open(in_file, "READ");
     TTree *metaTree = nullptr;
     file->GetObject("MetaData", metaTree);
-    int *nEvents = nullptr;
+
+    int nEvents;
     metaTree->SetBranchAddress("nEvents", &nEvents);
     metaTree->GetEntry(0);
+    file->Close();
     
     // Import hepdata points
     std::string hepdata_name = config["hepdata_name"];
@@ -132,15 +115,23 @@ void analysis_JPsicandidates_plot_data() {
 
     TH1F *pT_reco_scale = (TH1F*)pT_reco->Clone("pTscale");
     for (int i = 1; i <= pT_reco_scale->GetNbinsX(); i++) {
-        double w   = efficiency[i-1];              // since ROOT bins start at 1
+        // double bin_center = pT_reco_scale->GetBinCenter(i);
+        // double deltaY = getDeltaY(bin_center, cuts_eta_JPsi_min, cuts_eta_JPsi_max);
+        // std::cout << "Bin " << i << ": pT = " << bin_center << " GeV/c, Δy = " << deltaY << ", efficiency = " << efficiency[i-1] << std::endl;
+
+        double w   = efficiency[i-1];//*deltaY;              // since ROOT bins start at 1
         double c   = pT_reco_scale->GetBinContent(i);
         double e   = pT_reco_scale->GetBinError(i);
 
         pT_reco_scale->SetBinContent(i, c / w);
         pT_reco_scale->SetBinError(i, e / w);              // scale uncertainties too
     }
+    // Scale by number of events to get absolute yields
+    pT_reco_scale->Scale(1./nEvents);
     pT_reco_scale->Draw("same");
     
+    pT_reco_scale->GetYaxis()->SetTitle("d^{2}N/(dp_{T} dy) (GeV/c)^{-1}");
+
     setMax({pT_reco_scale});
     TLegend *leg3 = new TLegend(0.4,0.7,0.9,0.9);
     leg3->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
@@ -150,17 +141,9 @@ void analysis_JPsicandidates_plot_data() {
     c3->SaveAs(TString::Format("results/%s/pTspectrascaled.png", data.Data()));
 
     // Create a canvas with two pads: top for the histogram, bottom for the ratio
-    TCanvas *c4 = new TCanvas("c4", "pT bin counts", 600, 600);
-    c4->Divide(1);
-  
-    c4->cd(1);
+    TCanvas *c4 = new TCanvas("c4", "pT bin counts", 700, 600);
+
     pT_reco_scale->Draw();
-    
-    TLegend *leg4 = new TLegend(0.4,0.7,0.9,0.9);
-    leg4->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
-    leg4->SetBorderSize(0);
-    leg4->SetFillStyle(0);
-    leg4->Draw();
     
     // Add hepdata points with error bars
     TH1F *pTHepData = new TH1F("pTHepData", "pTHepData", pT_bins.size()-1, pT_bins.data());
@@ -175,6 +158,17 @@ void analysis_JPsicandidates_plot_data() {
     pTHepData->Draw("E1 SAME");
     
     pT_reco_scale->SetMinimum(1e-5);
+    
+    TLegend *leg4 = new TLegend(0.4,0.75,0.9,0.9);
+    leg4->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
+    leg4->AddEntry(pTHepData, "ALICE 2017", "lep");
+    leg4->SetBorderSize(0);
+    leg4->SetFillStyle(0);
+    leg4->Draw();
+
+    setMax({pT_reco_scale, pTHepData});
     gPad->SetLogy();
+    increaseMargins(c4);
+    drawLabel_cuts(data_name, "", &pT_JPsi_cuts, &eta_JPsi_cuts, 0.45, 0.55);
     c4->SaveAs(TString::Format("results/%s/pTspectracompare.png", data.Data()));
 }

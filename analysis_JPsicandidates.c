@@ -17,16 +17,7 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-void fillHist(int idx, const TString& name, std::map<int, std::unique_ptr<TH1F>>& hists, double value, int n_bins, double x_min, double x_max) {
-
-    // If histogram doesn't exist yet, create it
-    if (hists.find(idx) == hists.end()) {
-        hists[idx] = std::make_unique<TH1F>(name, name, n_bins, x_min, x_max);
-        hists[idx]->SetDirectory(nullptr); 
-    }
-
-    hists[idx]->Fill(value);
-}
+#include "utils/hists.c"
 
 void analysis_JPsiHists(TString type) {
     
@@ -40,22 +31,14 @@ void analysis_JPsiHists(TString type) {
     TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
 
     // Cuts
-    float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
-    float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
-
     float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
     float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
-    
-    float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
-    float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
-    
-    float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
-    float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
     
     int n_files = config["n_files"];
 
     // Histogram parameters
-    int n_bins_mass = 100;
+    bool scale_by_y = config["scale_by_y"];
+    int n_bins_mass = config["hists"]["n_bins_mass"];
     float signal_range_min = config["signal_range"]["min"];
     float signal_range_max = config["signal_range"]["max"];
     float background_range_min = config["background_range"]["min"];
@@ -112,12 +95,16 @@ void analysis_JPsiHists(TString type) {
             }
         }
 
+        double w = 1.0; 
+        if (scale_by_y) {
+            w = 1.0 / getDeltaY(pT, eta_JPsi_min, eta_JPsi_max);
+        }
         if (mass >= signal_range_min && mass <= signal_range_max) {
-            pT_sig->Fill(pT);
+            pT_sig->Fill(pT, w);
         } else if (mass >= background_range_min && mass < signal_range_min) {
-            pT_bkg_low->Fill(pT);
+            pT_bkg_low->Fill(pT, w);
         } else if (mass > signal_range_max && mass <= background_range_max) {
-            pT_bkg_high->Fill(pT);
+            pT_bkg_high->Fill(pT, w);
         }
     }
     std::cout << std::endl;

@@ -314,11 +314,13 @@ void analysis_plot_MC(TFile* file, TString data_name, TString type) {
 
 void analysis_plot() {
 
-    TString data_name = "DQ";
-    // TString data_name = "DQ_data";
+    TString data_name = "c3_global";
+    // TString data_name = "c3_standalone";
+    // TString data_name = "DQ_data_global";
+    // TString data_name = "DQ_data_standalone";
 
-    TString type = "gen";
-    // TString type = "reco";
+    // TString type = "gen";
+    TString type = "reco";
 
     TFile* file = TFile::Open(TString::Format("results/%s/%s/analysis.root", data_name.Data(), type.Data()), "READ");
     if (!file || file->IsZombie()) {
@@ -326,7 +328,7 @@ void analysis_plot() {
         return;
     }
 
-    if (data_name == "DQ_data") {
+    if (data_name(0,7) == "DQ_data") {
         analysis_plot_data(file, data_name, type);
     } else {
         analysis_plot_MC(file, data_name, type);

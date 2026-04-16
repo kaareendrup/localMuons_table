@@ -17,9 +17,36 @@
 #include <string>
 #include <iomanip>
 
-#include "setALICEStyle.c"
+#include "style.c"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
+void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, bool same = false) {
+    // Draw any histogram with consistent styling
+    hist->SetLineColor(line_color);
+    hist->SetLineWidth(2);
+    hist->SetTitle(title);
+    // hist->Scale(scale_factor);
+    hist->SetMinimum(0);
+    if (same) {
+        hist->Draw("SAME");
+    } else {
+        hist->Draw();
+    }
+}
+
+void setMax(std::vector<TH1F*> hists) {
+    // Adjust y-axis maximum to be 1.5 times the largest maximum among the provided histograms
+    double max_val = 0;
+    for (auto hist : hists) {
+        if (hist->GetMaximum() > max_val) {
+            max_val = hist->GetMaximum();
+        }
+    }
+    for (auto hist : hists) {
+        hist->SetMaximum(1.5 * max_val);
+    }
+}
 
 std::vector<double> get_efficiency(json config, TString MC_name) {
 
