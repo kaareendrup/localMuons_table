@@ -65,7 +65,7 @@ std::vector<double> get_efficiency(json config, TString MC_name) {
     return efficiency;
 }
 
-TH1F *createInvMassHist(TString type, json config, TString MC_name) {
+void createInvMassHist(TString type, json config, TString MC_name) {
 
     // Load json config
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
@@ -78,10 +78,6 @@ TH1F *createInvMassHist(TString type, json config, TString MC_name) {
     // Load data
     TString in_file = TString::Format("results/%s/%s/invMassSpektra.root", MC_name.Data(), type.Data());
     TFile* file = TFile::Open(in_file, "READ");
-    
-    TH1F *pT_sig = (TH1F*)file->Get("pT_sig");
-    TH1F *pT_bkg_low = (TH1F*)file->Get("pT_bkg_low");
-    TH1F *pT_bkg_high = (TH1F*)file->Get("pT_bkg_high");
 
     int n_bins = pT_bins.size() - 1;
     int n_cols = std::ceil(std::sqrt(n_bins));
@@ -124,6 +120,17 @@ TH1F *createInvMassHist(TString type, json config, TString MC_name) {
     gStyle->SetOptTitle(0);
 
     c1->SaveAs(TString::Format("results/%s/invMasspTBins_%s.png", MC_name.Data(), type.Data()));
+}
+
+TH1F *createPTHist(TString type, json config, TString MC_name) {
+  
+    // Load data
+    TString in_file = TString::Format("results/%s/%s/invMassSpektra.root", MC_name.Data(), type.Data());
+    TFile* file = TFile::Open(in_file, "READ");
+    
+    TH1F *pT_sig = (TH1F*)file->Get("pT_sig");
+    TH1F *pT_bkg_low = (TH1F*)file->Get("pT_bkg_low");
+    TH1F *pT_bkg_high = (TH1F*)file->Get("pT_bkg_high");
 
     TCanvas *c2 = new TCanvas("c2", "pT bin counts", 450, 400);
     // pT_sig->Sumw2();
