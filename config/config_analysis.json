@@ -3,6 +3,7 @@
     "muon_type": "standalone",
     "data_eff_source": "c3",
     "n_files": 50,
+    "scale_by_yield": true,
     "branching_ratio": 1,
     "branching_ratio_old": 0.05961,
     "hepdata_name": "HEPData-ins1511865-v1-Table_1",
@@ -14,6 +15,10 @@
         "eta_mu_max": -2.5
     },
     "cuts_JPsi": {
+        "pT_mu_min": 0.0,
+        "pT_mu_max": 50.0,
+        "eta_mu_min": -3.6,
+        "eta_mu_max": -2.5,
         "pT_JPsi_min": 1.0,
         "pT_JPsi_max": 20.0,
         "eta_JPsi_min": -3.6,
@@ -38,13 +43,24 @@
             16.0,
             18.0,
             20.0
-        ]
+        ],
+        "n_bins_mass": 80,
+        "mass_min": 1.0,
+        "mass_max": 5.0
     },
     "signal_range": {
+        "min": 2.8,
+        "max": 3.4
+    },
+    "background_range": {
+        "min": 2.5,
+        "max": 3.7
+    },
+    "signal_range_backup": {
         "min": 2.9,
         "max": 3.3
     },
-    "background_range": {
+    "background_range_backup": {
         "min": 2.7,
         "max": 3.5
     }
