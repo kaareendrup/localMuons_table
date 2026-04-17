@@ -23,7 +23,13 @@ using json = nlohmann::json;
 #include "plots.c"
 
 void analysis_JPsicandidates_plot_overlay() {
-    
+    // This function loads the histograms created in 
+    // analysis_JPsicandidates for both data and MC, applies scaling if needed, 
+    // and creates overlayed plots for the invariant mass spectra and pT distributions.
+
+    ////////////////////////////////////////////////////////////////////
+    ////            Load configuration, setup up filenames          ////
+    ////////////////////////////////////////////////////////////////////
     std::cout << std::fixed << std::setprecision(1);
     SetALICEStyle();
 
@@ -46,15 +52,19 @@ void analysis_JPsicandidates_plot_overlay() {
 
     // Import efficiency
     std::vector<double> efficiency = get_efficiency(config, MC_name);
-
-    // Draw histograms overlayed
-    TCanvas *c3 = new TCanvas("c3", "pT bin counts", 900, 400);
-    c3->Divide(2,1);
     
-    // Create histograms
+    ////////////////////////////////////////////////////////////////////
+    ////                Load histograms from file                   ////
+    ////////////////////////////////////////////////////////////////////
     TH1F* pT_reco_data = createInvMassHist("reco", config, data);
     TH1F* pT_reco_MC = createInvMassHist("reco", config, MC_name);
     
+    ////////////////////////////////////////////////////////////////////
+    ////        Plot corrected and uncorrected J/Psi spectra        ////
+    ////////////////////////////////////////////////////////////////////
+    TCanvas *c3 = new TCanvas("c3", "pT bin counts", 900, 400);
+    c3->Divide(2,1);
+
     // Create uncorrected histogram
     c3->cd(1);
     pT_reco_data->Draw();

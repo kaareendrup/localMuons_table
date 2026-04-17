@@ -62,7 +62,7 @@ void analysis_JPsicandidates_plot() {
     std::vector<double> efficiency = get_efficiency(config, MC_name);
 
     ////////////////////////////////////////////////////////////////////
-    ////                Plot corrected J/Psi spectra                ////
+    ////        Plot corrected and uncorrected J/Psi spectra        ////
     ////////////////////////////////////////////////////////////////////
     
     // Create uncorrected and efficiency-corrected pT spectra, and plot them together with the generated distribution
