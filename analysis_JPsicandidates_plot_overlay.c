@@ -104,8 +104,6 @@ void analysis_JPsicandidates_plot_overlay() {
     TLegend *leg3s = new TLegend(0.4,0.6,0.9,0.9);
     leg3s->AddEntry(pT_reco_data, "Data\n (not corrected)", "l");
     leg3s->AddEntry(pT_reco_MC, "MC\n (not corrected)", "l");
-    leg3s->SetBorderSize(0);
-    leg3s->SetFillStyle(0);
     leg3s->Draw();
 
     // Create scaled histogram
@@ -122,8 +120,6 @@ void analysis_JPsicandidates_plot_overlay() {
     TLegend *leg3 = new TLegend(0.4,0.7,0.9,0.9);
     leg3->AddEntry(pT_reco_scale, "Data\n (corrected)", "l");
     leg3->AddEntry(pT_reco_scale_MC, "MC\n (corrected)", "l");
-    leg3->SetBorderSize(0);
-    leg3->SetFillStyle(0);
     leg3->Draw();
     c3->SaveAs(TString::Format("results/%s/pTspectrascaled_overlay.png", data.Data()));
 }

@@ -22,6 +22,9 @@ void SetALICEStyle() {
     gStyle->SetTextFont(42);
     gStyle->SetLabelFont(42, "XY");
     gStyle->SetTitleFont(42, "XY");
+
+    gStyle->SetLegendBorderSize(0);     // No border
+    gStyle->SetLegendFillStyle(0);     // Transparent background
 }
 
 void increaseMargins(TCanvas* c) {

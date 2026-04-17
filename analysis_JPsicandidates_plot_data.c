@@ -106,8 +106,6 @@ void analysis_JPsicandidates_plot_data() {
     pT_reco->Draw();
     TLegend *leg3s = new TLegend(0.4,0.6,0.9,0.9);
     leg3s->AddEntry(pT_reco, "Reconstructed (not corrected)", "l");
-    leg3s->SetBorderSize(0);
-    leg3s->SetFillStyle(0);
     leg3s->Draw();
 
     // Create scaled histogram
@@ -135,8 +133,6 @@ void analysis_JPsicandidates_plot_data() {
     setMax({pT_reco_scale});
     TLegend *leg3 = new TLegend(0.4,0.7,0.9,0.9);
     leg3->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
-    leg3->SetBorderSize(0);
-    leg3->SetFillStyle(0);
     leg3->Draw();
     c3->SaveAs(TString::Format("results/%s/pTspectrascaled.png", data.Data()));
 
@@ -162,8 +158,6 @@ void analysis_JPsicandidates_plot_data() {
     TLegend *leg4 = new TLegend(0.4,0.75,0.9,0.9);
     leg4->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
     leg4->AddEntry(pTHepData, "ALICE 2017", "lep");
-    leg4->SetBorderSize(0);
-    leg4->SetFillStyle(0);
     leg4->Draw();
 
     setMax({pT_reco_scale, pTHepData});
