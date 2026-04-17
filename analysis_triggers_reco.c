@@ -18,7 +18,13 @@
 using json = nlohmann::json;
 
 void analysis_triggers_reco() {
-    
+    // This function finds J/Psi candidates and associate muons 
+    // at the reconstruction level, applies cuts, and saves the 
+    // relevant information in a new tree for further analysis.
+
+    ////////////////////////////////////////////////////////////////////
+    ////            Load configuration, setup up filenames          ////
+    ////////////////////////////////////////////////////////////////////
     std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
     jsonFile >> config;
@@ -32,18 +38,24 @@ void analysis_triggers_reco() {
     // Cuts
     float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
     float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
-
     float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
     float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
     
-    float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
-    float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
+    float pT_leg_min = config["cuts_JPsi"]["pT_mu_min"];
+    float pT_leg_max = config["cuts_JPsi"]["pT_mu_max"];
+    float eta_leg_min = config["cuts_JPsi"]["eta_mu_min"];
+    float eta_leg_max = config["cuts_JPsi"]["eta_mu_max"];
     
-    float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
-    float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
-    
+    float pT_assoc_min = config["cuts_mu"]["pT_mu_min"];
+    float pT_assoc_max = config["cuts_mu"]["pT_mu_max"];
+    float eta_assoc_min = config["cuts_mu"]["eta_mu_min"];
+    float eta_assoc_max = config["cuts_mu"]["eta_mu_max"];
+
     int n_files = config["n_files"];
 
+    ////////////////////////////////////////////////////////////////////
+    ////            Open output files and set up branches           ////
+    ////////////////////////////////////////////////////////////////////
     TFile* outFile = TFile::Open(TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data()), "RECREATE");
     TTree* outTree = new TTree("Triggers", "JPsi triggers");
 
@@ -70,6 +82,9 @@ void analysis_triggers_reco() {
     int exceptions[] = {3}; // ONLY FOR DATA FOR NOW
     // int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
 
+    ////////////////////////////////////////////////////////////////////
+    ////    Loop over O2 output files, finding J/Psi candidates     ////
+    ////////////////////////////////////////////////////////////////////
     for (int i = 0; i < n_files; ++i) {
 
         // Skip files with known issues
@@ -97,8 +112,11 @@ void analysis_triggers_reco() {
             
             TDirectory* dir = (TDirectory*) obj;
             TTree *tree = (TTree*)dir->Get("O2dqmuontable");
-
             std::cout << TString::Format("Reading tracks from dir %d of %d: %s\r", dirCount, file->GetListOfKeys()->GetEntries(), dir->GetName()) << std::flush;
+
+            ////////////////////////////////////////////////////////////////////
+            ////            First loop to match muons by event index        ////
+            ////////////////////////////////////////////////////////////////////
 
             // Group muons by event index
             std::map<ULong64_t, std::vector<Long64_t>> muon_groups;
@@ -112,6 +130,11 @@ void analysis_triggers_reco() {
                 muon_groups[fEventIdx].push_back(i);
             }
             nEvents += muon_groups.size(); // Count unique events for metadata
+
+      
+            ////////////////////////////////////////////////////////////////////
+            ////    Second loop to find J/Psi candidates and associates     ////
+            ////////////////////////////////////////////////////////////////////
 
             // Prepare to label
             Long64_t fGlobalIndexAssoc;
@@ -147,12 +170,12 @@ void analysis_triggers_reco() {
                 
                 // Find the muon pair with invariant mass closest to J/Psi mass
                 for (size_t j = 0; j < muon_vectors.size(); ++j) {
-                    if (muon_vectors[j].Pt() < pT_mu_min || muon_vectors[j].Pt() > pT_mu_max) continue;
-                    if (muon_vectors[j].Eta() < eta_mu_min || muon_vectors[j].Eta() > eta_mu_max) continue;
+                    if (muon_vectors[j].Pt() < pT_leg_min || muon_vectors[j].Pt() > pT_leg_max) continue;
+                    if (muon_vectors[j].Eta() < eta_leg_min || muon_vectors[j].Eta() > eta_leg_max) continue;
 
                     for (size_t k = j + 1; k < muon_vectors.size(); ++k) {
-                        if (muon_vectors[k].Pt() < pT_mu_min || muon_vectors[k].Pt() > pT_mu_max) continue;
-                        if (muon_vectors[k].Eta() < eta_mu_min || muon_vectors[k].Eta() > eta_mu_max) continue;
+                        if (muon_vectors[k].Pt() < pT_assoc_min || muon_vectors[k].Pt() > pT_assoc_max) continue;
+                        if (muon_vectors[k].Eta() < eta_assoc_min || muon_vectors[k].Eta() > eta_assoc_max) continue;
 
                         auto track = muon_vectors[j] + muon_vectors[k];
 
