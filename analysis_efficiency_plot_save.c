@@ -104,8 +104,6 @@ void analysis_efficiency_plot_save() {
     drawHist(pTMuonRecoTrueHist, "#mu p_{T};p_{T} (GeV/c);Counts", kRed, 1.2);
     drawHist(pTMuonRecoHist, "#mu p_{T};p_{T} (GeV/c);Counts", kBlue, 1.2, true);
     TLegend *legend1 = new TLegend(0.7, 0.7, 0.85, 0.85);
-    legend1->SetBorderSize(0);
-    legend1->SetFillStyle(0);
     legend1->AddEntry(pTMuonRecoTrueHist, "true p_{T}", "l");
     legend1->AddEntry(pTMuonRecoHist, "reco p_{T}", "l");
     legend1->Draw();
@@ -115,8 +113,6 @@ void analysis_efficiency_plot_save() {
     drawHist(pTJPsiRecoTrueHist, "J/#Psi p_{T};p_{T} (GeV/c);Counts", kRed, 1.2);
     drawHist(pTJPsiRecoHist, "J/#Psi p_{T};p_{T} (GeV/c);Counts", kBlue, 1.2, true);
     TLegend *legend2 = new TLegend(0.7, 0.7, 0.85, 0.85);
-    legend2->SetBorderSize(0);
-    legend2->SetFillStyle(0);
     legend2->AddEntry(pTJPsiRecoTrueHist, "true p_{T}", "l");
     legend2->AddEntry(pTJPsiRecoHist, "reco p_{T}", "l");
     legend2->Draw();
@@ -131,8 +127,6 @@ void analysis_efficiency_plot_save() {
     drawHist(pTMuonGenHist, "#mu p_{T};p_{T} (GeV/c);Counts", kRed, 1.2);
     drawHist(pTMuonRecoHist, "#mu p_{T};p_{T} (GeV/c);Counts", kBlue, 1.2, true);
     TLegend *legend3 = new TLegend(0.7, 0.7, 0.85, 0.85);
-    legend3->SetBorderSize(0);
-    legend3->SetFillStyle(0);
     legend3->AddEntry(pTMuonGenHist, "gen p_{T}", "l");
     legend3->AddEntry(pTMuonRecoHist, "reco p_{T}", "l");
     legend3->Draw();
@@ -142,8 +136,6 @@ void analysis_efficiency_plot_save() {
     drawHist(pTJPsiGenHist, "J/#Psi p_{T};p_{T} (GeV/c);Counts", kRed, 1.2);
     drawHist(pTJPsiRecoHist, "J/#Psi p_{T};p_{T} (GeV/c);Counts", kBlue, 1.2, true);
     TLegend *legend4 = new TLegend(0.7, 0.7, 0.85, 0.85);
-    legend4->SetBorderSize(0);
-    legend4->SetFillStyle(0);
     legend4->AddEntry(pTJPsiGenHist, "gen p_{T}", "l");
     legend4->AddEntry(pTJPsiRecoHist, "reco p_{T}", "l");
     legend4->Draw();

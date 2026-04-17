@@ -64,8 +64,6 @@ void analysis_efficiency_plot_save_overlay() {
 
     // Add legend
     TLegend *legend = new TLegend(0.5, 0.7, 0.85, 0.85);
-    legend->SetBorderSize(0);
-    legend->SetFillStyle(0);
     legend->AddEntry(JPsiEffHist_1, "DQ MC", "l");
     legend->AddEntry(JPsiEffHist_2, "General purpose MC", "l");
     legend->Draw();
