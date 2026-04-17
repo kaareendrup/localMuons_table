@@ -65,6 +65,30 @@ std::vector<double> get_efficiency(json config, TString MC_name) {
     return efficiency;
 }
 
+void scale_histogram(TH1F* hist, const std::vector<double>& efficiency, int nEvents) {
+
+    for (int i = 1; i <= hist->GetNbinsX(); i++) {
+
+        double w   = efficiency[i-1];
+        double c   = hist->GetBinContent(i);
+        double e   = hist->GetBinError(i);
+
+        hist->SetBinContent(i, c / w);
+        hist->SetBinError(i, e / w);              // scale uncertainties too
+    }
+    // Scale by number of events to get absolute yields
+    hist->Scale(1./nEvents);
+}
+
+int getNEvents(TString data) {
+    int nEvents;
+    TFile file(Form("results/%s/reco/invMassSpektra.root", data.Data()), "READ");
+
+    ((TTree*)file.Get("MetaData"))->SetBranchAddress("nEvents", &nEvents);
+    ((TTree*)file.Get("MetaData"))->GetEntry(0);
+    return nEvents;
+}
+
 void createInvMassHist(TString type, json config, TString MC_name) {
 
     // Load json config

@@ -55,6 +55,9 @@ void analysis_JPsicandidates_plot() {
     TH1F* pT_reco = createPTHist("reco", config, MC_name);
     TH1F* pT_gen = createPTHist("gen", config, MC_name);
 
+    // Import metadata
+    int nEvents = getNEvents(MC_name);
+
     // Get efficiency for scaling
     std::vector<double> efficiency = get_efficiency(config, MC_name);
 
@@ -80,14 +83,7 @@ void analysis_JPsicandidates_plot() {
 
     // Plot efficiency-corrected distribution
     TH1F *pT_reco_scale = (TH1F*)pT_reco->Clone("pTscale");
-    for (int i = 1; i <= pT_reco_scale->GetNbinsX(); i++) {
-        double w   = efficiency[i-1];              // since ROOT bins start at 1
-        double c   = pT_reco_scale->GetBinContent(i);
-        double e   = pT_reco_scale->GetBinError(i);
-
-        pT_reco_scale->SetBinContent(i, c / w);
-        pT_reco_scale->SetBinError(i, e / w);              // scale uncertainties too
-    }
+    scale_histogram(pT_reco_scale, efficiency, nEvents);
     pT_reco_scale->Scale(JPsi_branching_ratio);
     pT_reco_scale->Draw("same");
     

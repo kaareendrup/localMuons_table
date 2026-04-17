@@ -47,16 +47,8 @@ void analysis_JPsicandidates_plot_data() {
     TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
 
     // Import metadata
-    TString in_file = TString::Format("results/%s/reco/invMassSpektra.root", data.Data());
-    TFile* file = TFile::Open(in_file, "READ");
-    TTree *metaTree = nullptr;
-    file->GetObject("MetaData", metaTree);
+    int nEvents = getNEvents(data);
 
-    int nEvents;
-    metaTree->SetBranchAddress("nEvents", &nEvents);
-    metaTree->GetEntry(0);
-    file->Close();
-    
     // Import hepdata points
     std::string hepdata_name = config["hepdata_name"];
     double crossSection = config["hepdata_crosssection"];
@@ -93,7 +85,8 @@ void analysis_JPsicandidates_plot_data() {
     }
 
     // Create histograms
-    TH1F* pT_reco = createInvMassHist("reco", config, data);
+    createInvMassHist("reco", config, data);
+    TH1F* pT_reco = createPTHist("reco", config, data);
     
     // Import efficiency
     std::vector<double> efficiency = get_efficiency(config, MC_name);
@@ -112,20 +105,8 @@ void analysis_JPsicandidates_plot_data() {
     c3->cd(2);
 
     TH1F *pT_reco_scale = (TH1F*)pT_reco->Clone("pTscale");
-    for (int i = 1; i <= pT_reco_scale->GetNbinsX(); i++) {
-        // double bin_center = pT_reco_scale->GetBinCenter(i);
-        // double deltaY = getDeltaY(bin_center, cuts_eta_JPsi_min, cuts_eta_JPsi_max);
-        // std::cout << "Bin " << i << ": pT = " << bin_center << " GeV/c, Δy = " << deltaY << ", efficiency = " << efficiency[i-1] << std::endl;
+    scale_histogram(pT_reco_scale, efficiency, nEvents);
 
-        double w   = efficiency[i-1];//*deltaY;              // since ROOT bins start at 1
-        double c   = pT_reco_scale->GetBinContent(i);
-        double e   = pT_reco_scale->GetBinError(i);
-
-        pT_reco_scale->SetBinContent(i, c / w);
-        pT_reco_scale->SetBinError(i, e / w);              // scale uncertainties too
-    }
-    // Scale by number of events to get absolute yields
-    pT_reco_scale->Scale(1./nEvents);
     pT_reco_scale->Draw("same");
     
     pT_reco_scale->GetYaxis()->SetTitle("d^{2}N/(dp_{T} dy) (GeV/c)^{-1}");
