@@ -44,10 +44,6 @@ void analysis_JPsicandidates_plot_data() {
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
     float cuts_pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
     float cuts_pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
-    float cuts_eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
-    float cuts_eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
-    std::vector<float> pT_JPsi_cuts = {cuts_pT_JPsi_min, cuts_pT_JPsi_max, 0, 20};
-    std::vector<float> eta_JPsi_cuts = {cuts_eta_JPsi_min, cuts_eta_JPsi_max, -4.0, 4.0};
 
     TString data = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
     TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
@@ -121,7 +117,7 @@ void analysis_JPsicandidates_plot_data() {
     scale_histogram(pT_reco_scale, efficiency, nEvents);
 
     pT_reco_scale->Draw("same");
-    
+
     pT_reco_scale->GetYaxis()->SetTitle("d^{2}N/(dp_{T} dy) (GeV/c)^{-1}");
 
     setMax({pT_reco_scale});
@@ -157,6 +153,6 @@ void analysis_JPsicandidates_plot_data() {
     setMax({pT_reco_scale, pTHepData});
     gPad->SetLogy();
     increaseMargins(c4);
-    drawLabel_cuts(data_name, "", &pT_JPsi_cuts, &eta_JPsi_cuts, 0.45, 0.55);
+    drawLabel_cuts(data_name, "", &config, 0.45, 0.55);
     c4->SaveAs(TString::Format("results/%s/pTspectracompare.png", data.Data()));
 }

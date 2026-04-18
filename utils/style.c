@@ -1,5 +1,7 @@
 
 #include "TLatex.h"
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 void SetALICEStyle() {
     gStyle->SetOptStat(0);          // No stat box
@@ -47,8 +49,7 @@ void increasePadMargins(TCanvas* c, int n) {
 void drawLabel_cuts(
     TString MC_name, 
     TString type, 
-    std::vector<float> *pTCuts = nullptr, 
-    std::vector<float> *etaCuts = nullptr,
+    json* config = nullptr,
     Double_t x = 0.50, 
     Double_t y = 0.85, 
     bool ralign = true
@@ -110,11 +111,13 @@ void drawLabel_cuts(
     }
 
     int cuts_added = 0;
-    if (pTCuts && etaCuts) {
-        // Add cut info
-        // Cuts are specified as:
-        // {pT_trigger_min, pT_trigger_max, pT_assoc_min, pT_assoc_max}
-        // {eta_trigger_min, eta_trigger_max, eta_assoc_min, eta_assoc_max}
+    // if (pTCuts && etaCuts) {
+    if (config) {
+
+        float cuts_pT_JPsi_min = config->at("cuts_JPsi").at("pT_JPsi_min");
+        float cuts_pT_JPsi_max = config->at("cuts_JPsi").at("pT_JPsi_max");
+        float cuts_eta_JPsi_min = config->at("cuts_JPsi").at("eta_JPsi_min");
+        float cuts_eta_JPsi_max = config->at("cuts_JPsi").at("eta_JPsi_max");
 
         // Loop over mu and J/Psi
         for (int i = 0; i < 2; ++i) {
@@ -123,20 +126,19 @@ void drawLabel_cuts(
             TString pT_str = Form("p_{T,%s}", particle.Data());
             TString eta_str = Form("#eta_{%s}", particle.Data());
 
-            // pT cuts
-            if (pTCuts->at(2*i+0) > 0) {
-                pT_str = Form("%.1f < %s", pTCuts->at(2*i+0), pT_str.Data());
+            if (cuts_pT_JPsi_min > 0) {
+                pT_str = Form("%.1f < %s", cuts_pT_JPsi_min, pT_str.Data());
             }
-            if (pTCuts->at(2*i+1) < 20) {
-                pT_str = Form("%s < %.1f", pT_str.Data(), pTCuts->at(2*i+1));
+            if (cuts_pT_JPsi_max < 20) {
+                pT_str = Form("%s < %.1f", pT_str.Data(), cuts_pT_JPsi_max);
             }
 
             // Eta cuts
-            if (etaCuts->at(2*i+0) > -4.0) {
-                eta_str = Form("%.1f < %s", etaCuts->at(2*i+0), eta_str.Data());
+            if (cuts_eta_JPsi_min > -4.0) {
+                eta_str = Form("%.1f < %s", cuts_eta_JPsi_min, eta_str.Data());
             }
-            if (etaCuts->at(2*i+1) < 4.0) {
-                eta_str = Form("%s < %.1f", eta_str.Data(), etaCuts->at(2*i+1));
+            if (cuts_eta_JPsi_max < 4.0) {
+                eta_str = Form("%s < %.1f", eta_str.Data(), cuts_eta_JPsi_max);
             }
 
             // Check if cuts are non-trivial before adding to details
