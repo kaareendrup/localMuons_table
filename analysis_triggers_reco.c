@@ -142,9 +142,11 @@ void analysis_triggers_reco() {
 
             // Prepare to read muon kinematics
             float fPt, fPhi, fEta;
+            Char_t fSign;
             tree->SetBranchAddress("fPtassoc", &fPt);
             tree->SetBranchAddress("fPhiassoc", &fPhi);
             tree->SetBranchAddress("fEtaassoc", &fEta);
+            tree->SetBranchAddress("fSignassoc", &fSign);
 
             // Second pass: process each group
             for (auto& event : muon_groups) {
@@ -156,12 +158,14 @@ void analysis_triggers_reco() {
 
                 // std::vector<Long64_t> muon_motherIDs, muon_motherPDGs;
                 std::vector<ROOT::Math::PtEtaPhiMVector> muon_vectors;
+                std::vector<int> muon_signs;
 
                 // Read muon kinematics and build 4-vectors
                 for (auto entry : muon_entries) {
                     tree->GetEntry(entry);
                     ROOT::Math::PtEtaPhiMVector muon_vec(fPt, fEta, fPhi, 0.105658); // Muon mass ~105.658 MeV/c^2
                     muon_vectors.push_back(muon_vec);
+                    muon_signs.push_back(fSign);
                 }
 
                 // Store the indexes of the best candidate muon pair
@@ -191,8 +195,6 @@ void analysis_triggers_reco() {
                         //     idx_cand_2 = k;
                         // }
                         JPsiCandidate = track;
-                        idx_cand_1 = j;
-                        idx_cand_2 = k;
                         if (JPsiCandidate.Eta() < eta_JPsi_min || JPsiCandidate.Eta() > eta_JPsi_max) continue; // Apply J/Psi eta cut
                         if (JPsiCandidate.Pt() < pT_JPsi_min || JPsiCandidate.Pt() > pT_JPsi_max) continue; // Apply J/Psi pT cut
 
@@ -200,10 +202,11 @@ void analysis_triggers_reco() {
                         eta = JPsiCandidate.Eta();
                         phi = JPsiCandidate.Phi();
                         mass = JPsiCandidate.M();
+                        category = "All_" + std::to_string(muon_signs[j] * muon_signs[k]); // -1 for OS, 1 for SS
 
                         // Loop over muons again to find assocs
                         for (size_t a = 0; a < muon_vectors.size(); ++a) {
-                            if (a == idx_cand_1 || a == idx_cand_2) continue; // Skip the trigger muons
+                            if (a == j || a == k) continue; // Skip the trigger muons
                             auto assocTrack = muon_vectors[a];
                             pT_assocs.push_back(assocTrack.Pt());
                             eta_assocs.push_back(assocTrack.Eta());

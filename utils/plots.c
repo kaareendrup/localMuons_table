@@ -118,6 +118,11 @@ void createInvMassHist(TString type, json config, TString MC_name) {
         c1->cd(i+1);
         TString category_str = TString::Format("pT_%.1f_%.1f_invMass", pT_bins[i], pT_bins[i+1]);
         TH1F *invMass_pt = (TH1F*)file->Get(category_str);
+        TH1F *invMass_pt_SS = (TH1F*)file->Get(category_str + "_SS");
+        if (!invMass_pt || !invMass_pt_SS) {
+            std::cerr << "Histogram " << category_str << " not found in file\n";
+            continue;
+        }
 
         invMass_pt->SetLineWidth(2);
         invMass_pt->SetLineColor(kRed);
@@ -126,6 +131,10 @@ void createInvMassHist(TString type, json config, TString MC_name) {
         invMass_pt->GetYaxis()->SetTitle("Counts");
         // invMass_pt->Sumw2();
         invMass_pt->Draw();
+
+        invMass_pt_SS->SetLineWidth(2);
+        invMass_pt_SS->SetLineColor(kBlue);
+        invMass_pt_SS->Draw("same");
 
         double yMinSingle = invMass_pt->GetMinimum();
         double yMaxSingle = invMass_pt->GetMaximum();
@@ -155,6 +164,7 @@ TH1F *createPTHist(TString type, json config, TString MC_name) {
     TH1F *pT_sig = (TH1F*)file->Get("pT_sig");
     TH1F *pT_bkg_low = (TH1F*)file->Get("pT_bkg_low");
     TH1F *pT_bkg_high = (TH1F*)file->Get("pT_bkg_high");
+    TH1F *pT_SS = (TH1F*)file->Get("pT_SS");
 
     TCanvas *c2 = new TCanvas("c2", "pT bin counts", 450, 400);
     // pT_sig->Sumw2();

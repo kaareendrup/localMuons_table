@@ -99,8 +99,9 @@ void analysis_JPsiHists(TString type) {
         TString category_str;
         for (size_t j = 0; j < pT_bins.size()-1; ++j) {
             if (pT >= pT_bins[j] && pT < pT_bins[j+1]) {
-                category_str = TString::Format("pT_%.1f_%.1f", pT_bins[j], pT_bins[j+1]);
-                fillHist(j, category_str + "_invMass", invMassHists, mass, n_bins_mass, 1.0, 5.0);   
+                category_str = TString::Format("pT_%.1f_%.1f_invMass", pT_bins[j], pT_bins[j+1]);
+                if (type == "reco" && *category == "All_1") category_str += "_SS"; // Add SS label for same-sign category at reco level
+                fillHist(j + pT_bins.size()*(*category == "All_1" ? 1 : 0), category_str, invMassHists, mass, n_bins_mass, 1.0, 5.0);   
                 break;
             }
         }
