@@ -106,10 +106,7 @@ void analysis_JPsiHists(TString type) {
             }
         }
 
-        double w = 1.0; 
-        if (scale_by_y) {
-            w = 1.0 / getDeltaY(pT, eta_JPsi_min, eta_JPsi_max);
-        }
+        double w = (scale_by_y) ? 1.0 / getDeltaY(pT, eta_JPsi_min, eta_JPsi_max) : 1.0;
         if (mass >= signal_range_min && mass <= signal_range_max) {
             pT_sig->Fill(pT, w);
         } else if (mass >= background_range_min && mass < signal_range_min) {
