@@ -96,6 +96,7 @@ void analysis_JPsiHists(TString type) {
         std::cout << "Processing entry " << i+1 << " of " << tree->GetEntries() << "\r" << std::flush;
         if (type == "gen" && *category != "JPsi") continue; // Only consider J/Psi category for gen-level analysis
 
+        // Loop over pT bins and fill invariant mass histograms
         TString category_str;
         for (size_t j = 0; j < pT_bins.size()-1; ++j) {
             if (pT >= pT_bins[j] && pT < pT_bins[j+1]) {
@@ -106,6 +107,7 @@ void analysis_JPsiHists(TString type) {
             }
         }
 
+        // Fill pT histograms for signal and background regions
         double w = (scale_by_y) ? 1.0 / getDeltaY(pT, eta_JPsi_min, eta_JPsi_max) : 1.0;
         if (mass >= signal_range_min && mass <= signal_range_max) {
             pT_sig->Fill(pT, w);
