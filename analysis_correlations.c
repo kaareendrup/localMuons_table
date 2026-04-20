@@ -68,16 +68,13 @@ void analysis_correlations() {
     // Set outfile
     TFile* outFile = TFile::Open(TString::Format("results/%s/%s/analysis.root", data_name.Data(), type.Data()), "RECREATE");
     TTree* triggerCounts = new TTree("Correlations", "JPsi correlations");
-    TTree* metaDataTree = new TTree("MetaData", "Metadata about the analysis");
     
     // Define branches for output tree
     std::string category_out; 
     int count_out;
-    int nEvents = 0;
 
     triggerCounts->Branch("category", &category_out);
     triggerCounts->Branch("count", &count_out, "count/I");
-    metaDataTree->Branch("nEvents", &nEvents, "nEvents/I");
 
     // Load events
     TString data_file = TString::Format("results/%s/%s/eventmuons.root", data_name.Data(), type.Data());
@@ -200,7 +197,23 @@ void analysis_correlations() {
         count_out = count.second;
         triggerCounts->Fill();
     }
-    triggerCounts->Write();
-    // metaData->Write();
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////    Load metadata tree with event count information and propagate   ////
+    ////////////////////////////////////////////////////////////////////////////
+    TTree *metaTree = nullptr;
+    file->GetObject("MetaData", metaTree);
+    int *nEvents = nullptr;
+    metaTree->SetBranchAddress("nEvents", &nEvents);
+    metaTree->GetEntry(0);
+    
+    int *nEventsOut = nullptr;
+    TTree* metaDataTree = new TTree("MetaData", "Metadata about the analysis");
+    metaDataTree->Branch("nEvents", &nEventsOut, "nEvents/I");
+    nEventsOut = nEvents; // Propagate the number of events to the new tree
+    std::cout << "Number of events: " << nEventsOut << std::endl;
+    metaDataTree->Fill(); // Fill with the propagated number of events
+
+    outFile->Write();
     outFile->Close();
 }
