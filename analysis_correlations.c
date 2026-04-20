@@ -48,6 +48,7 @@ void analysis_correlations() {
     float eta_assoc_max = config["cuts_mu"]["eta_mu_max"];
 
     // Histogram parameters
+    bool scale_by_y = config["scale_by_y"];
     int n_bins_mass = config["hists"]["n_bins_mass"];
     int n_bins = config["hists"]["n_bins_correlations"];
     float deltaEta_min = config["hists"]["deltaEta_min"];
@@ -164,14 +165,15 @@ void analysis_correlations() {
                 }
             }
 
-            fillHist(full_category + "_deltaEta", deltaEtaHists, deltaEta, n_bins, deltaEta_min, deltaEta_max);
-            fillHist(full_category + "_deltaPhi", deltaPhiHists, deltaPhi, n_bins, -0.5 * M_PI, 3.0 / 2.0 * M_PI);
+            double w = (scale_by_y) ? 1.0 / getDeltaY(pT, eta_trigger_min, eta_trigger_max) : 1.0;
+            fillHist(full_category + "_deltaEta", deltaEtaHists, deltaEta, n_bins, deltaEta_min, deltaEta_max, w);
+            fillHist(full_category + "_deltaPhi", deltaPhiHists, deltaPhi, n_bins, -0.5 * M_PI, 3.0 / 2.0 * M_PI, w);
 
             for (int p = 0; p < 10; ++p) {
                 float ptmin = pT_bins[p];
                 float ptmax = pT_bins[p + 1];
                 if (pT_assocs->at(j) >= ptmin && pT_assocs->at(j) < ptmax) {
-                    fillHist(TString::Format("%s_deltaPhi_pT_%.1f_%.1f", full_category.Data(), ptmin, ptmax), deltaPhiHistspT, deltaPhi, n_bins, -0.5 * M_PI, 3.0 / 2.0 * M_PI);
+                    fillHist(TString::Format("%s_deltaPhi_pT_%.1f_%.1f", full_category.Data(), ptmin, ptmax), deltaPhiHistspT, deltaPhi, n_bins, -0.5 * M_PI, 3.0 / 2.0 * M_PI, w);
                 }
             }
         }
