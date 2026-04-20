@@ -312,7 +312,7 @@ void analysis_plot_MC(TFile* file, TString data_name, TString type) {
     c2->SaveAs(TString::Format("results/%s/%s/JPsi_all.png", data_name.Data(), type.Data()));
 }
 
-void analysis_plot() {
+void analysis_correlations_plot() {
 
     TString data_name = "c3_global";
     // TString data_name = "c3_standalone";
