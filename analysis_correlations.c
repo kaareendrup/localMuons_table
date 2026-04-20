@@ -42,11 +42,6 @@ void analysis_correlations() {
     float eta_trigger_min = config["cuts_JPsi"]["eta_JPsi_min"];
     float eta_trigger_max = config["cuts_JPsi"]["eta_JPsi_max"];
     
-    float pT_leg_min = config["cuts_JPsi"]["pT_mu_min"];
-    float pT_leg_max = config["cuts_JPsi"]["pT_mu_max"];
-    float eta_leg_min = config["cuts_JPsi"]["eta_mu_min"];
-    float eta_leg_max = config["cuts_JPsi"]["eta_mu_max"];
-    
     float pT_assoc_min = config["cuts_mu"]["pT_mu_min"];
     float pT_assoc_max = config["cuts_mu"]["pT_mu_max"];
     float eta_assoc_min = config["cuts_mu"]["eta_mu_min"];
