@@ -71,7 +71,9 @@ void analysis_correlations() {
     triggerCounts->Branch("category", &category_out);
     triggerCounts->Branch("count", &count_out, "count/I");
 
-    // Load events
+    ////////////////////////////////////////////////////////////////////
+    ////            Open input file tree, setup pT histograms       ////
+    ////////////////////////////////////////////////////////////////////
     TString data_file = TString::Format("results/%s/%s/eventmuons.root", data_name.Data(), type.Data());
     TFile *file = TFile::Open(data_file);
     if (!file || file->IsZombie()) {
@@ -109,7 +111,10 @@ void analysis_correlations() {
     std::map<TString, std::unique_ptr<TH1F>> deltaPhiHists;
     std::map<TString, std::unique_ptr<TH1F>> deltaPhiHistspT;
 
-    // Loop over entries and create the necessary histograms
+    ////////////////////////////////////////////////////////////////////////
+    ////    Loop over J/Psi candidate entries and fill histograms       ////
+    ////////////////////////////////////////////////////////////////////////
+
     for (Long64_t i = 0; i < tree->GetEntries(); ++i) {
 
         tree->GetEntry(i);
