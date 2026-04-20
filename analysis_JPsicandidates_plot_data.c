@@ -21,6 +21,7 @@
 using json = nlohmann::json;
 
 #include "utils/plots.c"
+#include "utils/efficiency.c"
 
 void analysis_JPsicandidates_plot_data() {
     // This function loads the histograms created in 
