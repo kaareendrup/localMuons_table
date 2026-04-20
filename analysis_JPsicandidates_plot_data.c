@@ -116,7 +116,7 @@ void analysis_JPsicandidates_plot_data() {
     scale_histogram(pT_reco_scale, efficiency, nEvents);
     pT_reco_scale->Draw("same");
 
-    pT_reco_scale->GetYaxis()->SetTitle("d^{2}N/(dp_{T} dy) (GeV/c)^{-1}");
+    pT_reco_scale->GetYaxis()->SetTitle("#frac{1}{N_{events}} d^{2}N/(dp_{T} dy) (GeV/c)^{-1}");
     setMax({pT_reco_scale});
     TLegend *leg3 = new TLegend(0.4,0.7,0.9,0.9);
     leg3->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
