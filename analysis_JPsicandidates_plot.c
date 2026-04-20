@@ -111,23 +111,11 @@ void analysis_JPsicandidates_plot() {
 
     // Plot ratio
     c4->cd(2);
-    gPad->SetPad(0,0,1,0.3);    // Bottom 30%
-    gPad->SetTopMargin(0); // Remove top margin for bottom pad
-    TH1F *ratio_hist = (TH1F*)pT_gen->Clone("ratio_hist");
-    ratio_hist->Divide(pT_reco_scale);
-    ratio_hist->Draw();
-    gPad->SetGridy();
+
+    TH1F *ratio_hist = createRatioPlot(pT_reco_scale, pT_gen);
     ratio_hist->SetMinimum(.95);
     ratio_hist->SetMaximum(1.08);
-    ratio_hist->GetYaxis()->SetTitle("Ratio");
-    ratio_hist->GetYaxis()->SetTitleOffset(0.5);
-    ratio_hist->GetYaxis()->SetTitleSize(0.09);
-    ratio_hist->GetYaxis()->SetLabelSize(0.08);
-    ratio_hist->GetYaxis()->SetNdivisions(505);
-    ratio_hist->GetXaxis()->SetTitleSize(0.09);
-    ratio_hist->GetXaxis()->SetLabelSize(0.08);
-
-    gPad->SetBottomMargin(0.3);
     c4->SetBottomMargin(0.8);
+    
     c4->SaveAs(TString::Format("results/%s/pTspectraratio.png", MC_name.Data()));
 }

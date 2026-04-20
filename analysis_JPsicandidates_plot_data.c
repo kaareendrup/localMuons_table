@@ -125,7 +125,10 @@ void analysis_JPsicandidates_plot_data() {
 
     // Create a canvas with two pads: top for the histogram, bottom for the ratio
     TCanvas *c4 = new TCanvas("c4", "pT bin counts", 700, 600);
-
+    c4->Divide(1,2);
+  
+    c4->cd(1);
+    gPad->SetPad(0,0.3,1,1);    // Top 70%
     pT_reco_scale->Draw();
     
     // Add hepdata points with error bars
@@ -151,5 +154,12 @@ void analysis_JPsicandidates_plot_data() {
     gPad->SetLogy();
     increaseMargins(c4);
     drawLabel_cuts(data_name, "", &config, 0.45, 0.55);
+    gPad->SetBottomMargin(0); // Remove bottom margin for top pad
+
+    c4->cd(2);
+    TH1F *ratio_hist = createRatioPlot(pT_reco_scale, pTHepData);
+    ratio_hist->SetMinimum(.5);
+    ratio_hist->SetMaximum(1.5);
+
     c4->SaveAs(TString::Format("results/%s/pTspectracompare.png", data.Data()));
 }

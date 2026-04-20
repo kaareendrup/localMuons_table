@@ -200,3 +200,22 @@ TH1F *createPTHist(TString type, json config, TString MC_name) {
     pT_sig_sub->Add(pT_bkg_high, -1);
     return pT_sig_sub;
 }
+
+TH1F *createRatioPlot(TH1F* hist1, TH1F* hist2) {
+    gPad->SetPad(0,0,1,0.3);    // Bottom 30%
+    gPad->SetTopMargin(0); // Remove top margin for bottom pad
+    TH1F *ratio_hist = (TH1F*)hist1->Clone("ratio_hist");
+    ratio_hist->Divide(hist2);
+    ratio_hist->Draw();
+    gPad->SetGridy();
+    ratio_hist->GetYaxis()->SetTitle("Ratio");
+    ratio_hist->GetYaxis()->SetTitleOffset(0.5);
+    ratio_hist->GetYaxis()->SetTitleSize(0.09);
+    ratio_hist->GetYaxis()->SetLabelSize(0.08);
+    ratio_hist->GetYaxis()->SetNdivisions(505);
+    ratio_hist->GetXaxis()->SetTitleSize(0.09);
+    ratio_hist->GetXaxis()->SetLabelSize(0.08);
+
+    gPad->SetBottomMargin(0.3);
+    return ratio_hist;
+}
