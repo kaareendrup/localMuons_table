@@ -26,7 +26,8 @@ void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, boo
     hist->SetLineColor(line_color);
     hist->SetLineWidth(2);
     hist->SetTitle(title);
-    // hist->Scale(scale_factor);
+    hist->Sumw2();
+    hist->Scale(scale_factor);
     hist->SetMinimum(0);
     if (same) {
         hist->Draw("SAME");
