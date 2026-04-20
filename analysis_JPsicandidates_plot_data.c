@@ -153,7 +153,7 @@ void analysis_JPsicandidates_plot_data() {
     setMax({pT_reco_scale, pTHepData});
     gPad->SetLogy();
     increaseMargins(c4);
-    drawLabel_cuts(data_name, "", &config, 0.45, 0.55);
+    drawLabel_cuts(data_name, "", &config, 0.45, 0.55, false, true, 0.05);
     gPad->SetBottomMargin(0); // Remove bottom margin for top pad
 
     c4->cd(2);

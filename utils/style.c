@@ -52,7 +52,9 @@ void drawLabel_cuts(
     json* config = nullptr,
     Double_t x = 0.50, 
     Double_t y = 0.85, 
-    bool ralign = true
+    bool show_muons = true,
+    bool ralign = true,
+    float text_size = 0.035
 ) {
 
     TString label;
@@ -120,7 +122,7 @@ void drawLabel_cuts(
         float cuts_eta_JPsi_max = config->at("cuts_JPsi").at("eta_JPsi_max");
 
         // Loop over mu and J/Psi
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 1 + show_muons; ++i) {
             // TString particle = (i == 0) ? "trig" : "assoc";
             TString particle = (i == 0) ? "trig" : "#mu";
             TString pT_str = Form("p_{T,%s}", particle.Data());
@@ -160,14 +162,14 @@ void drawLabel_cuts(
     } else {
         latex.SetTextAlign(11);
     }
-    latex.SetTextSize(0.035);
+    latex.SetTextSize(text_size);
     latex.SetTextFont(42);
     latex.DrawLatex(x, y, label);
     for (size_t i = 0; i < details.size(); ++i) {
-        float y_offset = 0.05 * (i + 1);
+        float y_offset = text_size * 1.5 * (i + 1);
         if (i > details.size() - cuts_added) {
             // Add extra spacing between cut details
-            y_offset = 0.05 * (details.size() - cuts_added + 1) + 0.06 * (i - (details.size() - cuts_added)); 
+            y_offset = text_size * 1.5 * (details.size() - cuts_added + 1) + text_size * 1.6 * (i - (details.size() - cuts_added)); 
         }
         latex.DrawLatex(x, y - y_offset, details[i]);
     }
