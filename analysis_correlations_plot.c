@@ -34,7 +34,7 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
 
     /////////// Plot invariant mass distribution of candidates ///////////
     TCanvas *c0 = new TCanvas("c0", "Invariant Mass of Muon Pairs", 800, 600);
-    TH1F* invMassHist = (TH1F*) file->Get("All_invMass");
+    TH1F* invMassHist = (TH1F*) file->Get("All_-1_invMass");
     invMassHist->Draw();
 
     double yMinSingle = invMassHist->GetMinimum();
@@ -65,8 +65,8 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
     c1->cd(1);
 
     // Load and draw signal and background histograms for deltaEta
-    TH1F* deltaEtaHistSig = (TH1F*) file->Get("All_signal_deltaEta");
-    TH1F* deltaEtaHistBkg = (TH1F*) file->Get("All_background_deltaEta");
+    TH1F* deltaEtaHistSig = (TH1F*) file->Get("All_-1_signal_deltaEta");
+    TH1F* deltaEtaHistBkg = (TH1F*) file->Get("All_-1_background_deltaEta");
 
     drawHist(deltaEtaHistSig, "Delta Eta;#Delta#eta;#frac{1}{N_{trig}} dN/d#Delta#eta", kGreen+1, 1.0);
     drawHist(deltaEtaHistBkg, "Delta Eta;#Delta#eta;#frac{1}{N_{trig}} dN/d#Delta#eta", kBlack, 1.0, true);
@@ -74,8 +74,8 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
 
     // Load and draw signal and background histograms for deltaPhi
     c1->cd(2);
-    TH1F* deltaPhiHistSig = (TH1F*) file->Get("All_signal_deltaPhi");
-    TH1F* deltaPhiHistBkg = (TH1F*) file->Get("All_background_deltaPhi");
+    TH1F* deltaPhiHistSig = (TH1F*) file->Get("All_-1_signal_deltaPhi");
+    TH1F* deltaPhiHistBkg = (TH1F*) file->Get("All_-1_background_deltaPhi");
 
     drawHist(deltaPhiHistSig, "Delta Phi;#Delta#varphi (rad);#frac{1}{N_{trig}} dN/d#Delta#varphi (rad^{-1})", kGreen+1, 1.0);
     drawHist(deltaPhiHistBkg, "Delta Phi;#Delta#varphi (rad);#frac{1}{N_{trig}} dN/d#Delta#varphi (rad^{-1})", kBlack, 1.0, true);
@@ -114,14 +114,14 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
     c2->cd(1);
     TH1F *deltaEtaHist_subtracted = (TH1F*)deltaEtaHistSig->Clone("h5");
     deltaEtaHist_subtracted->Add(deltaEtaHistBkg, -1);
-    drawHist(deltaEtaHist_subtracted, "Subtracted Delta Eta;#Delta#eta;#frac{1}{N_{trig}} dN/d#Delta#eta", kBlue+1, 1.0 / (trigger_counts["All"] * deltaEtaHist_subtracted->GetBinWidth(1)));
+    drawHist(deltaEtaHist_subtracted, "Subtracted Delta Eta;#Delta#eta;#frac{1}{N_{trig}} dN/d#Delta#eta", kBlue+1, 1.0 / (trigger_counts["All_-1"] * deltaEtaHist_subtracted->GetBinWidth(1)));
     setMax({deltaEtaHist_subtracted});
 
     // Subtract background from signal for deltaPhi
     c2->cd(2);
     TH1F *deltaPhiHist_subtracted = (TH1F*)deltaPhiHistSig->Clone("h6");
     deltaPhiHist_subtracted->Add(deltaPhiHistBkg, -1);
-    drawHist(deltaPhiHist_subtracted, "Subtracted Delta Phi;#Delta#varphi (rad);#frac{1}{N_{trig}} dN/d#Delta#varphi (rad^{-1})", kBlue+1, 1.0 / (trigger_counts["All"] * deltaPhiHist_subtracted->GetBinWidth(1)));
+    drawHist(deltaPhiHist_subtracted, "Subtracted Delta Phi;#Delta#varphi (rad);#frac{1}{N_{trig}} dN/d#Delta#varphi (rad^{-1})", kBlue+1, 1.0 / (trigger_counts["All_-1"] * deltaPhiHist_subtracted->GetBinWidth(1)));
     setMax({deltaPhiHist_subtracted});
 
     // Adjust margins
@@ -151,10 +151,10 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
         // Load the correct histograms for this pT bin
         float ptmin = pT_bins[p];
         float ptmax = pT_bins[p + 1];
-        TH1F* deltaPhiHistSig_pT = (TH1F*) file->Get(TString::Format("All_signal_deltaPhi_pT_%.1f_%.1f", ptmin, ptmax));
-        TH1F* deltaPhiHistBkg_pT = (TH1F*) file->Get(TString::Format("All_background_deltaPhi_pT_%.1f_%.1f", ptmin, ptmax));
+        TH1F* deltaPhiHistSig_pT = (TH1F*) file->Get(TString::Format("All_-1_signal_deltaPhi_pT_%.1f_%.1f", ptmin, ptmax));
+        TH1F* deltaPhiHistBkg_pT = (TH1F*) file->Get(TString::Format("All_-1_background_deltaPhi_pT_%.1f_%.1f", ptmin, ptmax));
         
-        if (!deltaPhiHistSig_pT || !deltaPhiHistBkg_pT) {std::cerr << "Could not retrieve histograms for pT range " << TString::Format("All_signal_deltaPhi_pT_%.1f_%.1f", ptmin, ptmax) << "\n"; continue;}
+        if (!deltaPhiHistSig_pT || !deltaPhiHistBkg_pT) {std::cerr << "Could not retrieve histograms for pT range " << TString::Format("All_-1_signal_deltaPhi_pT_%.1f_%.1f", ptmin, ptmax) << "\n"; continue;}
         
         // Draw signal and background for this pT bin
         c3->cd(p + 1);
@@ -166,7 +166,7 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
         c4->cd(p + 1);
         TH1F *deltaPhiHist_subtracted_pT = (TH1F*)deltaPhiHistSig_pT->Clone(TString::Format("h6_pT_%g_%g", ptmin, ptmax));
         deltaPhiHist_subtracted_pT->Add(deltaPhiHistBkg_pT, -1);
-        drawHist(deltaPhiHist_subtracted_pT, TString::Format("%.1f < p_{T} < %.1f GeV/c;#Delta#varphi (rad);#frac{1}{N_{trig}} dN/d#Delta#varphi (rad^{-1})", ptmin, ptmax), kBlue+1, 1.0 / (trigger_counts["All"] * deltaPhiHist_subtracted_pT->GetBinWidth(1)));
+        drawHist(deltaPhiHist_subtracted_pT, TString::Format("%.1f < p_{T} < %.1f GeV/c;#Delta#varphi (rad);#frac{1}{N_{trig}} dN/d#Delta#varphi (rad^{-1})", ptmin, ptmax), kBlue+1, 1.0 / (trigger_counts["All_-1"] * deltaPhiHist_subtracted_pT->GetBinWidth(1)));
         setMax({deltaPhiHist_subtracted_pT});
 
     }
@@ -177,6 +177,9 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
 }
 
 void analysis_correlations_plot() {
+
+    std::cout << std::fixed << std::setprecision(1);
+    SetALICEStyle();
 
     ////////////////////////////////////////////////////////////////////
     ////            Load configuration, setup up filenames          ////
