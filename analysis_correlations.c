@@ -1,80 +1,83 @@
 
-void fillHist(const std::string& name, std::map<std::string, std::unique_ptr<TH1F>>& hists, double value, int n_bins, double x_min, double x_max) {
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+#include <TMath.h>
+#include <Math/Vector4D.h>
+#include <TH1F.h>
 
-    // If histogram doesn't exist yet, create it
-    if (hists.find(name) == hists.end()) {
-        hists[name] = std::make_unique<TH1F>(name.c_str(), name.c_str(), n_bins, x_min, x_max);
-        hists[name]->SetDirectory(nullptr); 
-    }
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 
-    hists[name]->Fill(value);
-}
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
+#include "utils/hists.c"
 
 void analysis_correlations() {
 
-    TString data_name = "DQ";
-    // TString data_name = "DQ_data";
+    ////////////////////////////////////////////////////////////////////
+    ////            Load configuration, setup up filenames          ////
+    ////////////////////////////////////////////////////////////////////
+    std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
+    json config;
+    jsonFile >> config;
 
-    TString type = "gen";
-    // TString type = "reco";
+    // Data
+    std::string dataset_name = config["data_name"];
+    std::string muon_type = config["muon_type"];
+    TString data_name = TString::Format("%s_%s", dataset_name.c_str(), muon_type.c_str());
+    
+    TString type = "reco";
 
-    bool is_MC = !(data_name == "DQ_data");
+    bool is_MC = !(dataset_name == "DQ_data");
 
-    // pT cuts
-    // float pT_trigger_min = 1.0;
-    float pT_trigger_min = 0.0;
-    // float pT_trigger_max = 20.0;
-    float pT_trigger_max = 12.0;
-    // float pT_assoc_min = 3.0;
-    // float pT_assoc_min = 2.0;
-    // float pT_assoc_min = 1.0;
-    float pT_assoc_min = 0.0;
-    // float pT_assoc_max = 20.0;
-    float pT_assoc_max = 12.0;
-
-    // Eta cuts    
-    float eta_trigger_min = -3.6;
-    float eta_trigger_max = -2.5;
-    float eta_assoc_min = -3.6;
-    float eta_assoc_max = -2.5;
+    // Cuts
+    float pT_trigger_min = config["cuts_JPsi"]["pT_JPsi_min"];
+    float pT_trigger_max = config["cuts_JPsi"]["pT_JPsi_max"];
+    float eta_trigger_min = config["cuts_JPsi"]["eta_JPsi_min"];
+    float eta_trigger_max = config["cuts_JPsi"]["eta_JPsi_max"];
+    
+    float pT_leg_min = config["cuts_JPsi"]["pT_mu_min"];
+    float pT_leg_max = config["cuts_JPsi"]["pT_mu_max"];
+    float eta_leg_min = config["cuts_JPsi"]["eta_mu_min"];
+    float eta_leg_max = config["cuts_JPsi"]["eta_mu_max"];
+    
+    float pT_assoc_min = config["cuts_mu"]["pT_mu_min"];
+    float pT_assoc_max = config["cuts_mu"]["pT_mu_max"];
+    float eta_assoc_min = config["cuts_mu"]["eta_mu_min"];
+    float eta_assoc_max = config["cuts_mu"]["eta_mu_max"];
 
     // Histogram parameters
-    int n_bins_mass = 100;
-    int n_bins = 20;
-    float signal_range_min = 2.7;
-    float signal_range_max = 3.4;
-    float deltaEta_min = -2.0;
-    float deltaEta_max = 2.0;
+    int n_bins_mass = config["hists"]["n_bins_mass"];
+    int n_bins = config["hists"]["n_bins_correlations"];
+    float deltaEta_min = config["hists"]["deltaEta_min"];
+    float deltaEta_max = config["hists"]["deltaEta_max"];
 
-    float signal_width = signal_range_max - signal_range_min;
-    float background_range_min = signal_range_min - (signal_width / 2.0);
-    float background_range_max = signal_range_max + (signal_width / 2.0);
+    float signal_range_min = config["signal_range"]["min"];
+    float signal_range_max = config["signal_range"]["max"];
+    float background_range_min = config["background_range"]["min"];
+    float background_range_max = config["background_range"]["max"];
 
-    std::vector<float> segments_pt = {0.0, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 7.5, 10.0, 20.0};
+    std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
 
     // Set outfile
     TFile* outFile = TFile::Open(TString::Format("results/%s/%s/analysis.root", data_name.Data(), type.Data()), "RECREATE");
     TTree* triggerCounts = new TTree("Correlations", "JPsi correlations");
-    TTree* metaData = new TTree("MetaData", "Event selection metadata");
-
+    TTree* metaDataTree = new TTree("MetaData", "Metadata about the analysis");
+    
     // Define branches for output tree
     std::string category_out; 
     int count_out;
-    std::vector<float> signal_ranges;
-    std::vector<float> pTCuts = {pT_trigger_min, pT_trigger_max, pT_assoc_min, pT_assoc_max};
-    std::vector<float> etaCuts = {eta_trigger_min, eta_trigger_max, eta_assoc_min, eta_assoc_max};
+    int nEvents = 0;
+
     triggerCounts->Branch("category", &category_out);
     triggerCounts->Branch("count", &count_out, "count/I");
-    metaData->Branch("signal_range", &signal_ranges);
-    metaData->Branch("segments_pt", &segments_pt);
-    metaData->Branch("pTCuts", &pTCuts);
-    metaData->Branch("etaCuts", &etaCuts);
-
-    // Store signal range info
-    for (float range : {background_range_min, signal_range_min, signal_range_max, background_range_max}) {
-        signal_ranges.push_back(range);
-    }
-    metaData->Fill();
+    metaDataTree->Branch("nEvents", &nEvents, "nEvents/I");
 
     // Load events
     TString data_file = TString::Format("results/%s/%s/eventmuons.root", data_name.Data(), type.Data());
@@ -108,11 +111,11 @@ void analysis_correlations() {
     tree->SetBranchAddress("phi_assocs",  &phi_assocs);
     tree->SetBranchAddress("MotherPID", &MotherPID);
 
-    std::map<std::string, int> trigger_counts;
-    std::map<std::string, std::unique_ptr<TH1F>> invMassHists;
-    std::map<std::string, std::unique_ptr<TH1F>> deltaEtaHists;
-    std::map<std::string, std::unique_ptr<TH1F>> deltaPhiHists;
-    std::map<std::string, std::unique_ptr<TH1F>> deltaPhiHistspT;
+    std::map<TString, int> trigger_counts;
+    std::map<TString, std::unique_ptr<TH1F>> invMassHists;
+    std::map<TString, std::unique_ptr<TH1F>> deltaEtaHists;
+    std::map<TString, std::unique_ptr<TH1F>> deltaPhiHists;
+    std::map<TString, std::unique_ptr<TH1F>> deltaPhiHistspT;
 
     // Loop over entries and create the necessary histograms
     for (Long64_t i = 0; i < tree->GetEntries(); ++i) {
@@ -120,7 +123,7 @@ void analysis_correlations() {
         tree->GetEntry(i);
         std::cout << "Processing entry " << i+1 << " of " << tree->GetEntries() << "\r" << std::flush;
 
-        std::string category_str = *category;
+        TString category_str = TString(*category);
         trigger_counts[category_str]++;
         fillHist(category_str + "_invMass", invMassHists, mass, n_bins_mass, 1.0, 5.0);
 
@@ -136,7 +139,7 @@ void analysis_correlations() {
                 deltaPhi += 2.0 * M_PI;
             }
 
-            std::string full_category = category_str;
+            TString full_category = category_str;
 
             // pT cuts
             if (pT < pT_trigger_min || pT > pT_trigger_max) continue;
@@ -168,10 +171,10 @@ void analysis_correlations() {
             fillHist(full_category + "_deltaPhi", deltaPhiHists, deltaPhi, n_bins, -0.5 * M_PI, 3.0 / 2.0 * M_PI);
 
             for (int p = 0; p < 10; ++p) {
-                float ptmin = segments_pt[p];
-                float ptmax = segments_pt[p + 1];
+                float ptmin = pT_bins[p];
+                float ptmax = pT_bins[p + 1];
                 if (pT_assocs->at(j) >= ptmin && pT_assocs->at(j) < ptmax) {
-                    fillHist(std::format("{}_deltaPhi_pT_{:.1f}_{:.1f}", full_category, ptmin, ptmax), deltaPhiHistspT, deltaPhi, n_bins, -0.5 * M_PI, 3.0 / 2.0 * M_PI);
+                    fillHist(TString::Format("%s_deltaPhi_pT_%.1f_%.1f", full_category.Data(), ptmin, ptmax), deltaPhiHistspT, deltaPhi, n_bins, -0.5 * M_PI, 3.0 / 2.0 * M_PI);
                 }
             }
         }
@@ -198,6 +201,6 @@ void analysis_correlations() {
         triggerCounts->Fill();
     }
     triggerCounts->Write();
-    metaData->Write();
+    // metaData->Write();
     outFile->Close();
 }
