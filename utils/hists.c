@@ -12,13 +12,13 @@ double getDeltaY(double pT, double eta_min, double eta_max) {
     return y_max - y_min;
 }
 
-void fillHist(int idx, const TString& name, std::map<int, std::unique_ptr<TH1F>>& hists, double value, int n_bins, double x_min, double x_max) {
+void fillHist(const TString& name, std::map<TString, std::unique_ptr<TH1F>>& hists, double value, int n_bins, double x_min, double x_max) {
 
     // If histogram doesn't exist yet, create it
-    if (hists.find(idx) == hists.end()) {
-        hists[idx] = std::make_unique<TH1F>(name, name, n_bins, x_min, x_max);
-        hists[idx]->SetDirectory(nullptr); 
+    if (hists.find(name) == hists.end()) {
+        hists[name] = std::make_unique<TH1F>(name, name, n_bins, x_min, x_max);
+        hists[name]->SetDirectory(nullptr); 
     }
 
-    hists[idx]->Fill(value);
+    hists[name]->Fill(value);
 }

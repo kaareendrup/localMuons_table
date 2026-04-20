@@ -32,9 +32,9 @@ void analysis_JPsiHists(TString type) {
     jsonFile >> config;
     
     // Data
-    std::string data_name = config["data_name"];
+    std::string dataset_name = config["data_name"];
     std::string muon_type = config["muon_type"];
-    TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
+    TString data_name = TString::Format("%s_%s", dataset_name.c_str(), muon_type.c_str());
 
     // Cuts
     float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
@@ -53,8 +53,8 @@ void analysis_JPsiHists(TString type) {
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
 
     // Set in and out filenames
-    TString data_file = TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data());
-    TFile* outFile = TFile::Open(TString::Format("results/%s/%s/invMassSpektra.root", MC_name.Data(), type.Data()), "RECREATE");
+    TString data_file = TString::Format("results/%s/%s/eventmuons.root", data_name.Data(), type.Data());
+    TFile* outFile = TFile::Open(TString::Format("results/%s/%s/invMassSpektra.root", data_name.Data(), type.Data()), "RECREATE");
 
     ////////////////////////////////////////////////////////////////////
     ////            Open input file tree, setup pT histograms       ////
@@ -82,7 +82,7 @@ void analysis_JPsiHists(TString type) {
     tree->SetBranchAddress("category", &category);
     
     // Create histograms
-    std::map<int, std::unique_ptr<TH1F>> invMassHists;
+    std::map<TString, std::unique_ptr<TH1F>> invMassHists;
     TH1D* pT_sig = new TH1D("pT_sig", "pT of signal region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
     TH1D* pT_bkg_low = new TH1D("pT_bkg_low", "pT of lower background region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
     TH1D* pT_bkg_high = new TH1D("pT_bkg_high", "pT of higher background region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
@@ -102,7 +102,7 @@ void analysis_JPsiHists(TString type) {
             if (pT >= pT_bins[j] && pT < pT_bins[j+1]) {
                 category_str = TString::Format("pT_%.1f_%.1f_invMass", pT_bins[j], pT_bins[j+1]);
                 if (type == "reco" && *category == "All_1") category_str += "_SS"; // Add SS label for same-sign category at reco level
-                fillHist(j + pT_bins.size()*(*category == "All_1" ? 1 : 0), category_str, invMassHists, mass, n_bins_mass, 1.0, 5.0);   
+                fillHist(category_str, invMassHists, mass, n_bins_mass, 1.0, 5.0);   
                 break;
             }
         }
