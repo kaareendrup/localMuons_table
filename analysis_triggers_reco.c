@@ -79,8 +79,8 @@ void analysis_triggers_reco() {
     metaDataTree->Branch("nEvents", &nEvents, "nEvents/I");
 
     // int exceptions[] = {5, 7, 8}; // Files with issues (e.g. missing trees)
-    int exceptions[] = {3}; // ONLY FOR DATA FOR NOW
-    // int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
+    // int exceptions[] = {3}; // ONLY FOR DATA FOR NOW
+    int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
 
     ////////////////////////////////////////////////////////////////////
     ////    Loop over O2 output files, finding J/Psi candidates     ////
@@ -188,12 +188,6 @@ void analysis_triggers_reco() {
                         phi_assocs.clear();
                         MotherPID.clear();
  
-                        // Replace candidate if closer to J/Psi mass
-                        // if (std::abs(track.M() - 3.0969) < std::abs(JPsiCandidate.M() - 3.0969)) { // J/Psi mass ~3.0969 GeV/c^2
-                        //     JPsiCandidate = track;
-                        //     idx_cand_1 = j;
-                        //     idx_cand_2 = k;
-                        // }
                         JPsiCandidate = track;
                         if (JPsiCandidate.Eta() < eta_JPsi_min || JPsiCandidate.Eta() > eta_JPsi_max) continue; // Apply J/Psi eta cut
                         if (JPsiCandidate.Pt() < pT_JPsi_min || JPsiCandidate.Pt() > pT_JPsi_max) continue; // Apply J/Psi pT cut
