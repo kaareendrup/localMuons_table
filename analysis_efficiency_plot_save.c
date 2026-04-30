@@ -38,15 +38,6 @@ void analysis_efficiency_plot_save() {
     TString in_file = TString::Format("results/%s/efficiency.root", MC_name.Data());
     TFile* file = TFile::Open(in_file, "READ");
 
-    // Load metadata
-    TTree* metaData = nullptr;
-    file->GetObject("MetaData", metaData);
-    std::vector<float>* pTCuts = nullptr;
-    std::vector<float>* etaCuts = nullptr;
-    metaData->SetBranchAddress("pTCuts", &pTCuts);
-    metaData->SetBranchAddress("etaCuts", &etaCuts);
-    metaData->GetEntry(0);
-
     // Efficiency plots
     TH1F *muonEffHist = (TH1F*)file->Get("muonEffHist");
     TH1F *muonEffTrueHist = (TH1F*)file->Get("muonEffTrueHist");
@@ -60,11 +51,11 @@ void analysis_efficiency_plot_save() {
     c1->cd(1);
     
     drawHist(muonEffHist, "#mu Efficiency;p_{T} (GeV/c);Eff_{#mu}", kBlue, 1.2);
-    drawLabel_cuts(MC_name, "", pTCuts, etaCuts, 0.85, 0.59);
+    drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c1->cd(2);
     drawHist(JPsiEffHist, "J/#Psi Efficiency;p_{T} (GeV/c);Eff_{J/#Psi}", kBlue, 1.2);
-    drawLabel_cuts(MC_name, "", pTCuts, etaCuts, 0.85, 0.59);
+    drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c1->SaveAs(TString::Format("results/%s/efficiency_plots.png", MC_name.Data()));
 
@@ -74,11 +65,11 @@ void analysis_efficiency_plot_save() {
 
     c2->cd(1);
     drawHist(muonEffTrueHist, "#mu Efficiency;p_{T} (GeV/c);Eff_{#mu}", kBlue, 1.2);
-    drawLabel_cuts(MC_name, "", pTCuts, etaCuts, 0.85, 0.59);
+    drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c2->cd(2);
     drawHist(JPsiEffTrueHist, "J/#Psi Efficiency;p_{T} (GeV/c);Eff_{J/#Psi}", kBlue, 1.2);
-    drawLabel_cuts(MC_name, "", pTCuts, etaCuts, 0.85, 0.59);
+    drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c2->SaveAs(TString::Format("results/%s/efficiency_plots_true.png", MC_name.Data()));
 
@@ -107,7 +98,7 @@ void analysis_efficiency_plot_save() {
     legend1->AddEntry(pTMuonRecoTrueHist, "true p_{T}", "l");
     legend1->AddEntry(pTMuonRecoHist, "reco p_{T}", "l");
     legend1->Draw();
-    drawLabel_cuts(MC_name, "", pTCuts, etaCuts, 0.85, 0.59);
+    drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
     
     c3->cd(2);
     drawHist(pTJPsiRecoTrueHist, "J/#Psi p_{T};p_{T} (GeV/c);Counts", kRed, 1.2);
@@ -116,7 +107,7 @@ void analysis_efficiency_plot_save() {
     legend2->AddEntry(pTJPsiRecoTrueHist, "true p_{T}", "l");
     legend2->AddEntry(pTJPsiRecoHist, "reco p_{T}", "l");
     legend2->Draw();
-    drawLabel_cuts(MC_name, "", pTCuts, etaCuts, 0.85, 0.59);
+    drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
     
     c3->SaveAs(TString::Format("results/%s/pT_plots_true_reco.png", MC_name.Data()));
     
@@ -130,7 +121,7 @@ void analysis_efficiency_plot_save() {
     legend3->AddEntry(pTMuonGenHist, "gen p_{T}", "l");
     legend3->AddEntry(pTMuonRecoHist, "reco p_{T}", "l");
     legend3->Draw();
-    drawLabel_cuts(MC_name, "", pTCuts, etaCuts, 0.85, 0.59);
+    drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c4->cd(2);
     drawHist(pTJPsiGenHist, "J/#Psi p_{T};p_{T} (GeV/c);Counts", kRed, 1.2);
@@ -139,7 +130,7 @@ void analysis_efficiency_plot_save() {
     legend4->AddEntry(pTJPsiGenHist, "gen p_{T}", "l");
     legend4->AddEntry(pTJPsiRecoHist, "reco p_{T}", "l");
     legend4->Draw();
-    drawLabel_cuts(MC_name, "", pTCuts, etaCuts, 0.85, 0.59);
+    drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c4->SaveAs(TString::Format("results/%s/pT_plots_gen_reco.png", MC_name.Data()));
 }
