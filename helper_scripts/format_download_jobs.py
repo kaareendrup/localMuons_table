@@ -1,8 +1,8 @@
 
 import re
 
-# MC_name = 'DQ_data_global'
-MC_name = 'c3_global'
+MC_name = 'DQ_data_global'
+# MC_name = 'c3_global'
 # MC_name = 'c3_standalone'
 # MC_name = 'HF'
 # MC_name = 'genpurp'

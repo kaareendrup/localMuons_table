@@ -11,7 +11,8 @@ def generate_input_multi(
     command_base,
     n_jobs, 
     n_files,
-    MC = True
+    MC = True,
+    PbPb = False,
 ):
 
     with open(data_dir+'/input_data.txt', 'r') as f:
@@ -29,6 +30,8 @@ def generate_input_multi(
 
     if MC:
         config_file = f"{config_dir}/configuration_dqEfficiency_withAssoc_{config_name}.json"
+    elif PbPb:
+        config_file = f"{config_dir}/configuration_dqTableReader_PbPb_{config_name}.json"
     else:
         config_file = f"{config_dir}/configuration_dqTableReader_withAssoc_{config_name}.json"
     output_director_file = f"{config_dir}/{outputdirector_name}.json"
@@ -93,39 +96,51 @@ input_dir = "/home/kaareendrup/analysis/input_data"
 
 ############## ACTUAL CONFIGURABLES ##############
 # data_name = "c3"
-data_name = "f4d"
-# data_name = "DQ_data"
+# data_name = "f4d"
+data_name = "DQ_data"
+# data_name = "DQ_PbPb"
 
-muon_type = "standalone"
-# muon_type = "global"
+# muon_type = "standalone"
+muon_type = "global"
 
 data_type = "reco"
 # data_type = "gen"
 
 # n_files = -1
-n_files = 740
+n_files = 1376
+# n_files = 168
+# n_files = 740
 # n_files = 400
 # n_files = 200
 # n_files = 16
 # n_files = 1
 
-# n_files_per_job = 8
-n_files_per_job = 4
+n_files_per_job = 8
+# n_files_per_job = 2
 
 ############## AUTOMATIC ##############
-data_dir = f"{input_dir}/{data_name}_{muon_type}"
-config_name = f"{muon_type}_{data_type}"
+
+MC, PbPb = False, False
 
 if data_name == "DQ_data":
-    MC = False
     outputdirector_name = "outputDirector_data"
     command_base = "o2-analysis-dq-table-reader-with-assoc -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
+elif data_name == "DQ_PbPb":
+    PbPb = True
+    outputdirector_name = "outputDirector_data"
+    command_base = "o2-analysis-dq-table-reader -b --configuration json:// | o2-analysis-dq-model-converter-event-extended -b --configuration json://"
 else:
     MC = True
     outputdirector_name = "outputDirector_MC"
     command_base = "o2-analysis-dq-efficiency-with-assoc -b --configuration json://"
 
+config_name = f"{muon_type}_{data_type}"
+if not PbPb:
+    data_dir = f"{input_dir}/{data_name}_{muon_type}"
+else:
+    data_dir = f"{input_dir}/{data_name}"
+
 assert n_files % n_files_per_job == 0, "N files must be divisible by files per job!"
 n_jobs = int(n_files / n_files_per_job)
 
-generate_input_multi(data_dir, config_dir, config_name, outputdirector_name,command_base, n_jobs, n_files, MC)
+generate_input_multi(data_dir, config_dir, config_name, outputdirector_name,command_base, n_jobs, n_files, MC, PbPb)
