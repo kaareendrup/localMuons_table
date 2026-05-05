@@ -35,10 +35,14 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
     /////////// Plot invariant mass distribution of candidates ///////////
     TCanvas *c0 = new TCanvas("c0", "Invariant Mass of Muon Pairs", 800, 600);
     TH1F* invMassHist = (TH1F*) file->Get("All_-1_invMass");
+    invMassHist->SetTitle("Invariant Mass of Muon Pairs;M_{#mu#mu} (GeV/c^{2});Counts");
     invMassHist->Draw();
 
     double yMinSingle = invMassHist->GetMinimum();
     double yMaxSingle = invMassHist->GetMaximum();
+
+    int entries = invMassHist->GetEntries();
+    std::cout << "Number of JPsi candidates: " << entries << std::endl;
 
     // Draw shaded boxes for background regions
     TBox* box1s = new TBox(background_range_min, yMinSingle, signal_range_min, yMaxSingle);
@@ -53,7 +57,7 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
 
     // Style and save
     increasePadMargins(c0, 1);
-    drawLabel_cuts(data_name, type, &config, 0.55, 0.89);
+    drawLabel_cuts(data_name, "", &config, 0.9, 0.89);
 
     TString out_name_invmass = TString::Format("results/%s/%s/JPsi_invariant_mass", data_name.Data(), type.Data());
     out_name_invmass.ReplaceAll(".", "_");
@@ -79,7 +83,7 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
 
     drawHist(deltaPhiHistSig, "Delta Phi;#Delta#varphi (rad);#frac{1}{N_{trig}} dN/d#Delta#varphi (rad^{-1})", kGreen+1, 1.0);
     drawHist(deltaPhiHistBkg, "Delta Phi;#Delta#varphi (rad);#frac{1}{N_{trig}} dN/d#Delta#varphi (rad^{-1})", kBlack, 1.0, true);
-    setMax({deltaPhiHistSig, deltaPhiHistBkg});
+    setMax({deltaPhiHistSig, deltaPhiHistBkg}, 1.6);
 
     //Adjust label positions
     deltaEtaHistSig->GetYaxis()->SetTitleOffset(1.6);
@@ -95,12 +99,14 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
     }
 
     // Legend
-    TLegend *legendCorr = new TLegend(0.65,0.7,0.9,0.85);
+    TLegend *legendCorr = new TLegend(0.25,0.8,0.5,0.95);
     legendCorr->AddEntry(deltaEtaHistSig, "Signal", "l");
     legendCorr->AddEntry(deltaEtaHistBkg, "Background", "l");
     legendCorr->Draw();
     c1->cd(1);
-    drawLabel_cuts(data_name, type, &config, 0.55, 0.89);
+    drawLabel_cuts(data_name, "", &config, 0.55, 0.89);
+    c1->cd(2);
+    drawLabel_cuts(data_name, "", &config, 0.9, 0.89);
     
     TString out_name = TString::Format("results/%s/%s/deltaEtaDeltaPhi", data_name.Data(), type.Data());
     out_name.ReplaceAll(".", "_");
@@ -133,20 +139,22 @@ void analysis_plot_data(json config, TFile* file, TString data_name, TString typ
         // drawLabel(data_name, 0.28, 0.85);
     }
     c2->cd(1);
-    drawLabel_cuts(data_name, type, &config, 0.55, 0.89);
+    drawLabel_cuts(data_name, "", &config, 0.55, 0.89);
     c2->SaveAs(out_name + "_subtracted.png");
 
     /////////// Make signal/background and subtraction plots for pT bins ///////////
-    TCanvas *c3 = new TCanvas("c3", "Signal/background Delta Phi by pT", 1300, 600);
-    c3->Divide(3,3);
-    TCanvas *c4 = new TCanvas("c4", "Subtracted Delta Phi by pT", 1300, 600);
-    c4->Divide(3,3);
+    int ncols = 4;
+    int nrows = (pT_bins.size() - 1 + ncols - 1) / ncols;
+    TCanvas *c3 = new TCanvas("c3", "Signal/background Delta Phi by pT", 300*ncols, 300*nrows);
+    c3->Divide(ncols, nrows);
+    TCanvas *c4 = new TCanvas("c4", "Subtracted Delta Phi by pT", 300*ncols, 300*nrows);
+    c4->Divide(ncols, nrows);
 
     // Enable title
     gStyle->SetOptTitle(1);
 
     // Loop over pT segments
-    for (int p = 0; p < 9; ++p) {
+    for (uint p = 0; p < pT_bins.size() - 1; ++p) {
 
         // Load the correct histograms for this pT bin
         float ptmin = pT_bins[p];
