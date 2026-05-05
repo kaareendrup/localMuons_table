@@ -17,6 +17,7 @@
 using json = nlohmann::json;
 
 #include "utils/hists.c"
+#include "utils/efficiency.c"
 
 void analysis_correlations() {
 
@@ -30,8 +31,11 @@ void analysis_correlations() {
     // Data
     std::string dataset_name = config["data_name"];
     std::string muon_type = config["muon_type"];
+    std::string eff_source = config["data_eff_source"];
+
     TString data_name = TString::Format("%s_%s", dataset_name.c_str(), muon_type.c_str());
-    
+    TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
+
     TString type = "reco";
 
     bool is_MC = !(dataset_name == "DQ_data");
@@ -72,6 +76,9 @@ void analysis_correlations() {
     triggerCounts->Branch("category", &category_out);
     triggerCounts->Branch("count", &count_out, "count/I");
 
+    std::vector<double> efficiency = get_efficiency(config, MC_name);
+    std::vector<double> efficiency_mu = get_efficiency(config, MC_name, true);
+
     ////////////////////////////////////////////////////////////////////
     ////            Open input file tree, setup pT histograms       ////
     ////////////////////////////////////////////////////////////////////
@@ -107,7 +114,12 @@ void analysis_correlations() {
     tree->SetBranchAddress("MotherPID", &MotherPID);
 
     std::map<TString, int> trigger_counts;
+    std::map<TString, int> pair_counts_nocuts;
+    std::map<TString, int> pair_counts_nocats;
+    std::map<TString, double> pair_counts;
+    std::map<TString, double> pair_counts_weighted;
     std::map<TString, std::unique_ptr<TH1F>> invMassHists;
+    std::map<TString, std::unique_ptr<TH1F>> invMassHistsPairs;
     std::map<TString, std::unique_ptr<TH1F>> deltaEtaHists;
     std::map<TString, std::unique_ptr<TH1F>> deltaPhiHists;
     std::map<TString, std::unique_ptr<TH1F>> deltaPhiHistspT;
@@ -138,7 +150,9 @@ void analysis_correlations() {
             }
 
             TString full_category = category_str;
+            pair_counts_nocuts[full_category]++;
 
+            fillHist(category_str + "_invMassPairs", invMassHistsPairs, mass, n_bins_mass, 1.0, 5.0);
             // pT cuts
             if (pT < pT_trigger_min || pT > pT_trigger_max) continue;
             if (pT_assocs->at(j) < pT_assoc_min || pT_assocs->at(j) > pT_assoc_max) continue;
@@ -146,6 +160,8 @@ void analysis_correlations() {
             // Eta cuts
             if (eta < eta_trigger_min || eta > eta_trigger_max) continue;
             if (eta_assocs->at(j) < eta_assoc_min || eta_assocs->at(j) > eta_assoc_max) continue;
+
+            pair_counts_nocats[full_category]++;
 
             if (is_MC) {
                 if ((std::abs(MotherPID->at(j)) >= 411 && std::abs(MotherPID->at(j)) <= 445) || 
@@ -165,11 +181,19 @@ void analysis_correlations() {
                 }
             }
 
-            double w = (scale_by_y) ? 1.0 / getDeltaY(pT, eta_trigger_min, eta_trigger_max) : 1.0;
+            double w_trig = get_weight(pT, pT_bins, efficiency, eta_trigger_min, eta_trigger_max);
+            // double w_trig = 1.0;
+            double w_assoc = get_weight(pT_assocs->at(j), pT_bins, efficiency, eta_trigger_min, eta_trigger_max);
+            // double w_assoc = 1.0;
+            double w = (scale_by_y) ? w_trig * w_assoc : 1.0;
+            
+            pair_counts[full_category]++;
+            pair_counts_weighted[full_category] += w;
+
             fillHist(full_category + "_deltaEta", deltaEtaHists, deltaEta, n_bins, deltaEta_min, deltaEta_max, w);
             fillHist(full_category + "_deltaPhi", deltaPhiHists, deltaPhi, n_bins, -0.5 * M_PI, 3.0 / 2.0 * M_PI, w);
 
-            for (int p = 0; p < 10; ++p) {
+            for (int p = 0; p < pT_bins.size() - 1; ++p) {
                 float ptmin = pT_bins[p];
                 float ptmax = pT_bins[p + 1];
                 if (pT_assocs->at(j) >= ptmin && pT_assocs->at(j) < ptmax) {
@@ -182,6 +206,9 @@ void analysis_correlations() {
 
     outFile->cd();
     for (auto& mHist : invMassHists) {
+        mHist.second->Write();
+    }
+    for (auto& mHist : invMassHistsPairs) {
         mHist.second->Write();
     }
     for (auto& dEtaHist : deltaEtaHists) {
@@ -198,6 +225,27 @@ void analysis_correlations() {
         category_out = count.first;
         count_out = count.second;
         triggerCounts->Fill();
+    }
+
+    for (auto& count : pair_counts_nocuts) {
+        category_out = count.first;
+        count_out = count.second;
+        std::cout << "Category: " << category_out << ", Count (no cuts): " << count_out << std::endl;
+    }
+    for (auto& count : pair_counts_nocats) {
+        category_out = count.first;
+        count_out = count.second;
+        std::cout << "Category: " << category_out << ", Count (no category): " << count_out << std::endl;
+    }
+    for (auto& count : pair_counts) {
+        category_out = count.first;
+        count_out = count.second;
+        std::cout << "Category: " << category_out << ", Count: " << count_out << std::endl;
+    }
+    for (auto& count : pair_counts_weighted) {
+        category_out = count.first;
+        count_out = count.second;
+        std::cout <<"Category: " << category_out << ", Weighted Count: " << count_out << std::endl;
     }
 
     ////////////////////////////////////////////////////////////////////////////
