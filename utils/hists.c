@@ -1,4 +1,7 @@
 
+#include <TString.h>
+#include <TH1F.h>
+#include <TGraphAsymmErrors.h>
 #include <vector>
 
 double getRapidity(double pT, double eta) {
@@ -39,4 +42,7 @@ double get_weight(double pT, const std::vector<double>& pT_bins, const std::vect
         return 1.0; // No correction if out of range
     }
     return 1.0 / (efficiency[eff_bin] * getDeltaY(pT, eta_trigger_min, eta_trigger_max));
+    // return 1.0 / (getDeltaY(pT, eta_trigger_min, eta_trigger_max));
+    // return 1.0 / (efficiency[eff_bin]);
+    // return 1.0;
 }
