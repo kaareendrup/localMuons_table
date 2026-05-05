@@ -64,6 +64,9 @@ void analysis_triggers_reco() {
     std::vector<double> pT_assocs, eta_assocs, phi_assocs;
     std::vector<int> MotherPID;
     int nEvents = 0;
+    int nTriggers = 0;
+    int nAssocs = 0;
+    std::map<TString, int> signassoc_counts;
 
     outTree->Branch("category", &category);
     outTree->Branch("pT",  &pT,  "pT/D");
@@ -77,10 +80,12 @@ void analysis_triggers_reco() {
 
     TTree* metaDataTree = new TTree("MetaData", "Metadata about the analysis");
     metaDataTree->Branch("nEvents", &nEvents, "nEvents/I");
+    metaDataTree->Branch("nTriggers", &nTriggers, "nTriggers/I");
+    metaDataTree->Branch("nAssocs", &nAssocs, "nAssocs/I");
 
     // int exceptions[] = {5, 7, 8}; // Files with issues (e.g. missing trees)
-    // int exceptions[] = {3}; // ONLY FOR DATA FOR NOW
-    int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
+    int exceptions[] = {3}; // ONLY FOR DATA FOR NOW
+    // int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
 
     ////////////////////////////////////////////////////////////////////
     ////    Loop over O2 output files, finding J/Psi candidates     ////
@@ -131,7 +136,6 @@ void analysis_triggers_reco() {
             }
             nEvents += muon_groups.size(); // Count unique events for metadata
 
-      
             ////////////////////////////////////////////////////////////////////
             ////    Second loop to find J/Psi candidates and associates     ////
             ////////////////////////////////////////////////////////////////////
@@ -171,15 +175,15 @@ void analysis_triggers_reco() {
                 // Store the indexes of the best candidate muon pair
                 ROOT::Math::PtEtaPhiMVector JPsiCandidate(-9999,0,0,-1); 
                 size_t idx_cand_1, idx_cand_2;
-                
+
                 // Find the muon pair with invariant mass closest to J/Psi mass
                 for (size_t j = 0; j < muon_vectors.size(); ++j) {
                     if (muon_vectors[j].Pt() < pT_leg_min || muon_vectors[j].Pt() > pT_leg_max) continue;
                     if (muon_vectors[j].Eta() < eta_leg_min || muon_vectors[j].Eta() > eta_leg_max) continue;
 
                     for (size_t k = j + 1; k < muon_vectors.size(); ++k) {
-                        if (muon_vectors[k].Pt() < pT_assoc_min || muon_vectors[k].Pt() > pT_assoc_max) continue;
-                        if (muon_vectors[k].Eta() < eta_assoc_min || muon_vectors[k].Eta() > eta_assoc_max) continue;
+                        if (muon_vectors[k].Pt() < pT_leg_min || muon_vectors[k].Pt() > pT_leg_max) continue;
+                        if (muon_vectors[k].Eta() < eta_leg_min || muon_vectors[k].Eta() > eta_leg_max) continue;
 
                         auto track = muon_vectors[j] + muon_vectors[k];
 
@@ -187,7 +191,7 @@ void analysis_triggers_reco() {
                         eta_assocs.clear();
                         phi_assocs.clear();
                         MotherPID.clear();
- 
+
                         JPsiCandidate = track;
                         if (JPsiCandidate.Eta() < eta_JPsi_min || JPsiCandidate.Eta() > eta_JPsi_max) continue; // Apply J/Psi eta cut
                         if (JPsiCandidate.Pt() < pT_JPsi_min || JPsiCandidate.Pt() > pT_JPsi_max) continue; // Apply J/Psi pT cut
@@ -202,10 +206,16 @@ void analysis_triggers_reco() {
                         for (size_t a = 0; a < muon_vectors.size(); ++a) {
                             if (a == j || a == k) continue; // Skip the trigger muons
                             auto assocTrack = muon_vectors[a];
+                            if (assocTrack.Pt() < pT_assoc_min || assocTrack.Pt() > pT_assoc_max) continue;
+                            if (assocTrack.Eta() < eta_assoc_min || assocTrack.Eta() > eta_assoc_max) continue;
                             pT_assocs.push_back(assocTrack.Pt());
                             eta_assocs.push_back(assocTrack.Eta());
                             phi_assocs.push_back(assocTrack.Phi());
+
+                            nAssocs++;
                         }
+                        nTriggers++;
+                        signassoc_counts[TString::Format("%s_%zu", category.c_str(), pT_assocs.size())]++;
 
                         outTree->Fill();
                     }
@@ -232,4 +242,8 @@ void analysis_triggers_reco() {
     outTree->Write();
     metaDataTree->Write();
     outFile->Close();
+
+    for (const auto& pair : signassoc_counts) {
+        std::cout << pair.first << ": " << pair.second << std::endl;
+    }
 }
