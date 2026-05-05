@@ -146,7 +146,7 @@ void analysis_JPsicandidates_plot_data() {
     
     pT_reco_scale->SetMinimum(1e-5);
     
-    TLegend *leg4 = new TLegend(0.4,0.75,0.9,0.9);
+    TLegend *leg4 = new TLegend(0.1,0.1,0.6,0.25);
     leg4->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
     leg4->AddEntry(pTHepData, "ALICE 2017", "lep");
     leg4->Draw();
@@ -154,13 +154,13 @@ void analysis_JPsicandidates_plot_data() {
     setMax({pT_reco_scale, pTHepData});
     gPad->SetLogy();
     increaseMargins(c4);
-    drawLabel_cuts(data_name, "", &config, 0.45, 0.55, false, true, 0.05);
+    drawLabel_cuts(data, "", &config, 0.85, 0.8, false, true, 0.05);
     gPad->SetBottomMargin(0); // Remove bottom margin for top pad
 
     c4->cd(2);
     TH1F *ratio_hist = createRatioPlot(pT_reco_scale, pTHepData);
-    ratio_hist->SetMinimum(.5);
-    ratio_hist->SetMaximum(1.5);
+    ratio_hist->SetMinimum(.3);
+    ratio_hist->SetMaximum(1.7);
 
     c4->SaveAs(TString::Format("results/%s/pTspectracompare.png", data.Data()));
 }
