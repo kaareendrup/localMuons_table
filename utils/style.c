@@ -92,6 +92,10 @@ void drawLabel_cuts(
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
         details.push_back("matchedMchMid");
         details.push_back("muonQualityCuts");
+    } else if (MC_name == "DQ_data_standalone") {
+        label = "2024 pp data";
+        details.push_back("#sqrt{#it{s}} = 13.6 TeV");
+        details.push_back("muonQualityCutsStandalone");
     } else if (MC_name == "f4d_global") {
         label = "Pythia General purpose MC";
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
@@ -116,36 +120,44 @@ void drawLabel_cuts(
     // if (pTCuts && etaCuts) {
     if (config) {
 
-        float cuts_pT_JPsi_min = config->at("cuts_JPsi").at("pT_JPsi_min");
-        float cuts_pT_JPsi_max = config->at("cuts_JPsi").at("pT_JPsi_max");
-        float cuts_eta_JPsi_min = config->at("cuts_JPsi").at("eta_JPsi_min");
-        float cuts_eta_JPsi_max = config->at("cuts_JPsi").at("eta_JPsi_max");
-
+        float cuts_pT_min, cuts_pT_max, cuts_eta_min, cuts_eta_max;
+        
         // Loop over mu and J/Psi
         for (int i = 0; i < 1 + show_muons; ++i) {
-            // TString particle = (i == 0) ? "trig" : "assoc";
+            if (i == 0) {
+                cuts_pT_min = config->at("cuts_JPsi").at("pT_JPsi_min");
+                cuts_pT_max = config->at("cuts_JPsi").at("pT_JPsi_max");
+                cuts_eta_min = config->at("cuts_JPsi").at("eta_JPsi_min");
+                cuts_eta_max = config->at("cuts_JPsi").at("eta_JPsi_max");
+            } else {
+                cuts_pT_min = config->at("cuts_mu").at("pT_mu_min");
+                cuts_pT_max = config->at("cuts_mu").at("pT_mu_max");
+                cuts_eta_min = config->at("cuts_mu").at("eta_mu_min");
+                cuts_eta_max = config->at("cuts_mu").at("eta_mu_max");
+            }
+
             TString particle = (i == 0) ? "trig" : "#mu";
             TString pT_str = Form("p_{T,%s}", particle.Data());
             TString eta_str = Form("#eta_{%s}", particle.Data());
 
-            if (cuts_pT_JPsi_min > 0) {
-                pT_str = Form("%.1f < %s", cuts_pT_JPsi_min, pT_str.Data());
+            if (cuts_pT_min > 0) {
+                pT_str = Form("%.1f GeV/c < %s", cuts_pT_min, pT_str.Data());
             }
-            if (cuts_pT_JPsi_max < 20) {
-                pT_str = Form("%s < %.1f", pT_str.Data(), cuts_pT_JPsi_max);
+            if (cuts_pT_max < 20) {
+                pT_str = Form("%s < %.1f GeV/c", pT_str.Data(), cuts_pT_max);
             }
 
             // Eta cuts
-            if (cuts_eta_JPsi_min > -4.0) {
-                eta_str = Form("%.1f < %s", cuts_eta_JPsi_min, eta_str.Data());
+            if (cuts_eta_min > -4.0) {
+                eta_str = Form("%.1f < %s", cuts_eta_min, eta_str.Data());
             }
-            if (cuts_eta_JPsi_max < 4.0) {
-                eta_str = Form("%s < %.1f", eta_str.Data(), cuts_eta_JPsi_max);
+            if (cuts_eta_max < 4.0) {
+                eta_str = Form("%s < %.1f", eta_str.Data(), cuts_eta_max);
             }
 
             // Check if cuts are non-trivial before adding to details
             if (pT_str != Form("p_{T,%s}", particle.Data())) {
-                details.push_back(pT_str + " GeV/c");
+                details.push_back(pT_str);
                 cuts_added++;
             }
             if (eta_str != Form("#eta_{%s}", particle.Data())) {
