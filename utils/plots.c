@@ -21,22 +21,29 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, bool same = false) {
+void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, bool same = false, bool errors = true) {
     // Draw any histogram with consistent styling
     hist->SetLineColor(line_color);
     hist->SetLineWidth(2);
     hist->SetTitle(title);
-    hist->Sumw2();
     hist->Scale(scale_factor);
     hist->SetMinimum(0);
-    if (same) {
-        hist->Draw("SAME");
-    } else {
-        hist->Draw();
+    TString ptype = "SAME";
+    if (!same) {
+        ptype = "";
     }
+    if (errors) {
+        hist->Sumw2();
+        ptype += "E1";
+    } else {
+        ptype += "hist";
+    }
+
+    hist->Draw(ptype);
+
 }
 
-void setMax(std::vector<TH1F*> hists) {
+void setMax(std::vector<TH1F*> hists, double factor = 1.5) {
     // Adjust y-axis maximum to be 1.5 times the largest maximum among the provided histograms
     double max_val = 0;
     for (auto hist : hists) {
@@ -45,7 +52,7 @@ void setMax(std::vector<TH1F*> hists) {
         }
     }
     for (auto hist : hists) {
-        hist->SetMaximum(1.5 * max_val);
+        hist->SetMaximum(factor * max_val);
     }
 }
 
