@@ -44,10 +44,8 @@ void analysis_JPsicandidates_plot_data() {
     std::string muon_type = config["muon_type"];
     std::string eff_source = config["data_eff_source"];
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
-    double cuts_pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
-    double cuts_pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
-    double cuts_eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
-    double cuts_eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
+    float cuts_pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
+    float cuts_pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
 
     TString data = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
     TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
