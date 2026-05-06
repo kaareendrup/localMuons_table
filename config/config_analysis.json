@@ -16,9 +16,9 @@
     },
     "cuts_JPsi": {
         "pT_mu_min": 0.0,
-        "pT_mu_max": 50.0,
-        "eta_mu_min": -10.0,
-        "eta_mu_max": 10.0,
+        "pT_mu_max": 20.0,
+        "eta_mu_min": -3.6,
+        "eta_mu_max": -2.5,
         "pT_JPsi_min": 1.0,
         "pT_JPsi_max": 20.0,
         "eta_JPsi_min": -3.6,
