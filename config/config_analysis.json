@@ -1,14 +1,15 @@
 {
-    "data_name": "DQ_data",
+    "data_name": "DQ_data_backup",
     "muon_type": "standalone",
     "data_eff_source": "c3",
     "n_files": 50,
+    "scale_by_y": true,
     "branching_ratio": 1,
     "branching_ratio_old": 0.05961,
     "hepdata_name": "HEPData-ins1511865-v1-Table_1",
     "hepdata_crosssection": 75.0,
     "cuts_mu": {
-        "pT_mu_min": 0.7,
+        "pT_mu_min": 0.0,
         "pT_mu_max": 20.0,
         "eta_mu_min": -3.6,
         "eta_mu_max": -2.5
@@ -38,7 +39,13 @@
             16.0,
             18.0,
             20.0
-        ]
+        ],
+        "n_bins_mass": 80,
+        "mass_min": 1.0,
+        "mass_max": 5.0,
+        "n_bins_correlations": 10,
+        "deltaEta_min": -2.0,
+        "deltaEta_max": 2.0
     },
     "signal_range": {
         "min": 2.9,
