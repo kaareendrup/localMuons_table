@@ -154,7 +154,7 @@ void analysis_JPsicandidates() {
 
     // Run the analysis for reconstructed data, and for generated data if running on MC
     analysis_JPsiHists("reco");
-    if (!(data_name == "DQ_data")) {
+    if (!(data_name == "DQ_data" || data_name == "DQ_data_backup")) {
         analysis_JPsiHists("gen");
     }
 }
