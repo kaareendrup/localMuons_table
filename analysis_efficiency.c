@@ -147,7 +147,7 @@ void analysis_efficiency() {
                 if (fEtaJPsiGen < eta_JPsi_min || fEtaJPsiGen > eta_JPsi_max) continue; // Apply eta cut on J/Psi
                 if (fPtJPsiGen < pT_JPsi_min || fPtJPsiGen > pT_JPsi_max) continue; // Apply pT cut on J/Psi
                 JPsiCount++;
-                // if (!MCMuonMothers.count(fGlobalIndexMCtrack)) continue; 
+                // if (!MCMuonMothers.count(fGlobalIndexMCtrack)) continue; // Check if this J/Psi has a muon daughter that passed the cuts
                 pTJPsiGen = fPtJPsiGen;
                 etaJPsiGen = fEtaJPsiGen;
                 outTreeJPsiGen->Fill();
