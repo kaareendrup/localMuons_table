@@ -20,7 +20,6 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-// #include "effUtils.c"
 #include "utils/plots.c"
 #include "utils/efficiency.c"
 
@@ -37,7 +36,13 @@ double getDeltaY(double pT, double eta_min, double eta_max) {
 }
 
 void analysis_JPsicandidates_plot_data() {
+    // This function loads the histograms created in 
+    // analysis_JPsicandidates, applies scaling if needed, 
+    // and creates plots for the invariant mass spectra and pT distributions.
 
+    ////////////////////////////////////////////////////////////////////
+    ////            Load configuration, setup up filenames          ////
+    ////////////////////////////////////////////////////////////////////
     std::cout << std::fixed << std::setprecision(1);
     SetALICEStyle();
 
@@ -55,15 +60,15 @@ void analysis_JPsicandidates_plot_data() {
 
     TString data = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
     TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
-
-    // Import metadata
-    TFile* file = TFile::Open(TString::Format("results/%s/reco/analysis.root", data.Data()), "READ");
-    TTree *metaTree = nullptr;
-    file->GetObject("MetaData", metaTree);
-    int nEvents;
-    metaTree->SetBranchAddress("nEvents", &nEvents);
-    metaTree->GetEntry(0);
     
+    ////////////////////////////////////////////////////////////////////
+    ////                Load metadata and hepdata                   ////
+    ////////////////////////////////////////////////////////////////////
+    int nEvents = getNEvents(data);
+    
+    // Import efficiency
+    std::vector<double> efficiency = get_efficiency(config, MC_name);
+
     // Import hepdata points
     std::string hepdata_name = config["hepdata_name"];
     double crossSection = config["hepdata_crosssection"];
@@ -98,14 +103,16 @@ void analysis_JPsicandidates_plot_data() {
             hepdata_errors.push_back(sqrt(pow(err_stat, 2) + pow(err_sys, 2)));
         }
     }
-
-    // Create histograms
+    
+    ////////////////////////////////////////////////////////////////////
+    ////                Load histograms from file                   ////
+    ////////////////////////////////////////////////////////////////////
     createInvMassHist("reco", config, data);
     TH1F* pT_reco = createPTHist("reco", config, data);
     
-    // Import efficiency
-    std::vector<double> efficiency = get_efficiency(config, MC_name);
-
+    ////////////////////////////////////////////////////////////////////
+    ////        Plot corrected and uncorrected J/Psi spectra        ////
+    ////////////////////////////////////////////////////////////////////
     TCanvas *c3 = new TCanvas("c3", "pT bin counts", 900, 400);
     c3->Divide(2,1);
     
@@ -114,8 +121,6 @@ void analysis_JPsicandidates_plot_data() {
     pT_reco->Draw();
     TLegend *leg3s = new TLegend(0.4,0.6,0.9,0.9);
     leg3s->AddEntry(pT_reco, "Reconstructed (not corrected)", "l");
-    leg3s->SetBorderSize(0);
-    leg3s->SetFillStyle(0);
     leg3s->Draw();
 
     // Create scaled histogram
@@ -133,11 +138,10 @@ void analysis_JPsicandidates_plot_data() {
     pT_reco_scale->Scale(1./nEvents); // Normalize by number of events to get per-event yield
     pT_reco_scale->Draw("same");
     
+    pT_reco_scale->GetYaxis()->SetTitle("#frac{1}{N_{events}} d^{2}N/(dp_{T} dy) (GeV/c)^{-1}");
     setMax({pT_reco_scale});
     TLegend *leg3 = new TLegend(0.4,0.7,0.9,0.9);
     leg3->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
-    leg3->SetBorderSize(0);
-    leg3->SetFillStyle(0);
     leg3->Draw();
     c3->SaveAs(TString::Format("results/%s/pTspectrascaled.png", data.Data()));
 
