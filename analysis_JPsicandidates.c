@@ -43,6 +43,7 @@ void analysis_JPsiHists(TString type) {
     int n_files = config["n_files"];
 
     // Histogram parameters
+    bool scale_by_y = config["scale_by_y"];
     int n_bins_mass = config["hists"]["n_bins_mass"];
     float signal_range_min = config["signal_range"]["min"];
     float signal_range_max = config["signal_range"]["max"];
@@ -106,12 +107,13 @@ void analysis_JPsiHists(TString type) {
             }
         }
 
+        double w = (scale_by_y) ? 1.0 / getDeltaY(pT, eta_JPsi_min, eta_JPsi_max) : 1.0;
         if (mass >= signal_range_min && mass <= signal_range_max) {
-            pT_sig->Fill(pT);
+            pT_sig->Fill(pT, w);
         } else if (mass >= background_range_min && mass < signal_range_min) {
-            pT_bkg_low->Fill(pT);
+            pT_bkg_low->Fill(pT, w);
         } else if (mass > signal_range_max && mass <= background_range_max) {
-            pT_bkg_high->Fill(pT);
+            pT_bkg_high->Fill(pT, w);
         }
     }
     std::cout << std::endl;

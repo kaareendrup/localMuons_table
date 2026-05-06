@@ -23,17 +23,6 @@ using json = nlohmann::json;
 #include "utils/plots.c"
 #include "utils/efficiency.c"
 
-double getRapidity(double pT, double eta) {
-    double mJPsi = 3.096916; // J/Psi mass in GeV/c^2
-    return log((sqrt(pow(mJPsi, 2) + (pow(pT, 2) * pow(cosh(eta), 2))) + pT * sinh(eta)) / (sqrt(pow(mJPsi, 2) + pow(pT, 2))));
-}
-
-double getDeltaY(double pT, double eta_min, double eta_max) {
-
-    double y_min = getRapidity(pT, eta_min);
-    double y_max = getRapidity(pT, eta_max);
-    return y_max - y_min;
-}
 
 void analysis_JPsicandidates_plot_data() {
     // This function loads the histograms created in 
@@ -129,19 +118,7 @@ void analysis_JPsicandidates_plot_data() {
     c3->cd(2);
 
     TH1F *pT_reco_scale = (TH1F*)pT_reco->Clone("pTscale");
-    for (int i = 1; i <= pT_reco_scale->GetNbinsX(); i++) {
-        double bin_center = pT_reco_scale->GetBinCenter(i);
-        double deltaY = getDeltaY(bin_center, cuts_eta_JPsi_min, cuts_eta_JPsi_max);
-        // std::cout << "Bin " << i << ": pT = " << bin_center << " GeV/c, Δy = " << deltaY << ", efficiency = " << efficiency[i-1] << std::endl;
-        // double w   = efficiency[i-1];              // since ROOT bins start at 1
-        double w   = efficiency[i-1]*deltaY;              // since ROOT bins start at 1
-        double c   = pT_reco_scale->GetBinContent(i);
-        double e   = pT_reco_scale->GetBinError(i);
-
-        pT_reco_scale->SetBinContent(i, c / w);
-        pT_reco_scale->SetBinError(i, e / w);              // scale uncertainties too
-    }
-    pT_reco_scale->Scale(1./nEvents); // Normalize by number of events to get per-event yield
+    scale_histogram(pT_reco_scale, efficiency, nEvents);
     pT_reco_scale->Draw("same");
     
     pT_reco_scale->GetYaxis()->SetTitle("#frac{1}{N_{events}} d^{2}N/(dp_{T} dy) (GeV/c)^{-1}");
