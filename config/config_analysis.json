@@ -48,10 +48,18 @@
         "deltaEta_max": 2.0
     },
     "signal_range": {
+        "min": 2.8,
+        "max": 3.4
+    },
+    "background_range": {
+        "min": 2.5,
+        "max": 3.9
+    },
+    "signal_range_backup": {
         "min": 2.9,
         "max": 3.3
     },
-    "background_range": {
+    "background_range_backup": {
         "min": 2.7,
         "max": 3.5
     }
