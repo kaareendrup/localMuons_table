@@ -181,10 +181,10 @@ void analysis_correlations() {
                 }
             }
 
-            // double w_trig = get_weight(pT, pT_bins, efficiency, eta_trigger_min, eta_trigger_max);
-            double w_trig = 1.0;
-            // double w_assoc = get_weight(pT_assocs->at(j), pT_bins, efficiency, eta_trigger_min, eta_trigger_max);
-            double w_assoc = 1.0;
+            double w_trig = get_weight(pT, pT_bins, efficiency, eta_trigger_min, eta_trigger_max);
+            // double w_trig = 1.0;
+            double w_assoc = get_weight(pT_assocs->at(j), pT_bins, efficiency, eta_trigger_min, eta_trigger_max);
+            // double w_assoc = 1.0;
             double w = (scale_by_y) ? w_trig * w_assoc : 1.0;
             
             pair_counts[full_category]++;
