@@ -20,33 +20,30 @@ using json = nlohmann::json;
 #include "utils/hists.c"
 
 void analysis_JPsiHists(TString type) {
-    
+    // This function processes the J/Psi candidate data, 
+    // applying cuts and filling histograms for 
+    // invariant mass and pT distributions.
+
+    ////////////////////////////////////////////////////////////////////
+    ////            Load configuration, setup up filenames          ////
+    ////////////////////////////////////////////////////////////////////
     std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
     jsonFile >> config;
     
     // Data
-    std::string data_name = config["data_name"];
+    std::string dataset_name = config["data_name"];
     std::string muon_type = config["muon_type"];
-    TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
+    TString data_name = TString::Format("%s_%s", dataset_name.c_str(), muon_type.c_str());
 
     // Cuts
-    float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
-    float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
-
     float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
     float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
-    
-    float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
-    float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
-    
-    float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
-    float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
     
     int n_files = config["n_files"];
 
     // Histogram parameters
-    int n_bins_mass = 100;
+    int n_bins_mass = config["hists"]["n_bins_mass"];
     float signal_range_min = config["signal_range"]["min"];
     float signal_range_max = config["signal_range"]["max"];
     float background_range_min = config["background_range"]["min"];
@@ -54,11 +51,13 @@ void analysis_JPsiHists(TString type) {
     
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
 
-    // Set outfile
-    TFile* outFile = TFile::Open(TString::Format("results/%s/%s/invMassSpektra.root", MC_name.Data(), type.Data()), "RECREATE");
-    
-    // Load events
-    TString data_file = TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data());
+    // Set in and out filenames
+    TString data_file = TString::Format("results/%s/%s/eventmuons.root", data_name.Data(), type.Data());
+    TFile* outFile = TFile::Open(TString::Format("results/%s/%s/invMassSpektra.root", data_name.Data(), type.Data()), "RECREATE");
+
+    ////////////////////////////////////////////////////////////////////
+    ////            Open input file tree, setup pT histograms       ////
+    ////////////////////////////////////////////////////////////////////
     TFile *file = TFile::Open(data_file);
     if (!file || file->IsZombie()) {
         std::cerr << "Cannot open file\n";
@@ -87,7 +86,9 @@ void analysis_JPsiHists(TString type) {
     TH1D* pT_bkg_low = new TH1D("pT_bkg_low", "pT of lower background region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
     TH1D* pT_bkg_high = new TH1D("pT_bkg_high", "pT of higher background region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
 
-    // Loop over entries and create the necessary histograms
+    ////////////////////////////////////////////////////////////////////////
+    ////    Loop over J/Psi candidate entries and fill pT histograms    ////
+    ////////////////////////////////////////////////////////////////////////
     for (Long64_t i = 0; i < tree->GetEntries(); ++i) {
 
         tree->GetEntry(i);
@@ -124,7 +125,9 @@ void analysis_JPsiHists(TString type) {
     pT_bkg_low->Write();
     pT_bkg_high->Write();
     
-    // Propagate metadata
+    ////////////////////////////////////////////////////////////////////////////
+    ////    Load metadata tree with event count information and propagate   ////
+    ////////////////////////////////////////////////////////////////////////////
     TTree *metaTree = nullptr;
     file->GetObject("MetaData", metaTree);
     int *nEvents = nullptr;
@@ -149,6 +152,7 @@ void analysis_JPsicandidates() {
     jsonFile >> config;
     std::string data_name = config["data_name"];
 
+    // Run the analysis for reconstructed data, and for generated data if running on MC
     analysis_JPsiHists("reco");
     if (!(data_name == "DQ_data")) {
         analysis_JPsiHists("gen");
