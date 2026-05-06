@@ -17,16 +17,7 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-void fillHist(int idx, const TString& name, std::map<int, std::unique_ptr<TH1F>>& hists, double value, int n_bins, double x_min, double x_max) {
-
-    // If histogram doesn't exist yet, create it
-    if (hists.find(idx) == hists.end()) {
-        hists[idx] = std::make_unique<TH1F>(name, name, n_bins, x_min, x_max);
-        hists[idx]->SetDirectory(nullptr); 
-    }
-
-    hists[idx]->Fill(value);
-}
+#include "utils/hists.c"
 
 void analysis_JPsiHists(TString type) {
     
@@ -91,7 +82,7 @@ void analysis_JPsiHists(TString type) {
     tree->SetBranchAddress("category", &category);
     
     // Create histograms
-    std::map<int, std::unique_ptr<TH1F>> invMassHists;
+    std::map<TString, std::unique_ptr<TH1F>> invMassHists;
     TH1D* pT_sig = new TH1D("pT_sig", "pT of signal region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
     TH1D* pT_bkg_low = new TH1D("pT_bkg_low", "pT of lower background region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
     TH1D* pT_bkg_high = new TH1D("pT_bkg_high", "pT of higher background region;p_{T} GeV/c;Counts", pT_bins.size() - 1, pT_bins.data());
@@ -103,11 +94,13 @@ void analysis_JPsiHists(TString type) {
         std::cout << "Processing entry " << i+1 << " of " << tree->GetEntries() << "\r" << std::flush;
         if (type == "gen" && *category != "JPsi") continue; // Only consider J/Psi category for gen-level analysis
 
+        // Loop over pT bins and fill invariant mass histograms
         TString category_str;
         for (size_t j = 0; j < pT_bins.size()-1; ++j) {
             if (pT >= pT_bins[j] && pT < pT_bins[j+1]) {
-                category_str = TString::Format("pT_%.1f_%.1f", pT_bins[j], pT_bins[j+1]);
-                fillHist(j, category_str + "_invMass", invMassHists, mass, n_bins_mass, 1.0, 5.0);   
+                category_str = TString::Format("pT_%.1f_%.1f_invMass", pT_bins[j], pT_bins[j+1]);
+                if (type == "reco" && *category == "All_1") category_str += "_SS"; // Add SS label for same-sign category at reco level
+                fillHist(category_str, invMassHists, mass, n_bins_mass, 1.0, 5.0);   
                 break;
             }
         }
