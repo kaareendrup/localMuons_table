@@ -33,7 +33,7 @@ def generate_download_script(input_dir, n_jobs, file_dir):
     print(f'With an average 100 MB per job, this amounts to approximately {n_jobs * 100} MB of data, or {(n_jobs * 100) / 1024:.2f} GB.')
     print(f'At a speed of .5 MB/s, this will take around {(n_jobs * 100) / 0.5 / 60:.2f} minutes to download.')
 
-run_name = 'DQ_data'
+run_name = 'DQ_data_global'
 n_jobs = int(1e12)
 # n_jobs = 100
 # MC_name = 'HF'
@@ -42,6 +42,7 @@ n_jobs = int(1e12)
 
 input_dir = f'input_data/{run_name}/'
 # output_dir = '/home/kaareendrup/analysis/localMuons_table/input_data/' + run_name + '/'
-output_dir = '/media/kaareendrup/ec65dbb9-11dd-4abf-ae3e-f029466fe958/analysis/input_data/' + run_name + '/'
+# output_dir = '/media/kaareendrup/ec65dbb9-11dd-4abf-ae3e-f029466fe958/analysis/input_data/' + run_name + '/'
+output_dir = '/home/kaareendrup/analysis/input_data/' + run_name + '/'
 
 generate_download_script(input_dir, n_jobs, output_dir)
