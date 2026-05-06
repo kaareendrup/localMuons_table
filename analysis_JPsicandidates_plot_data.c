@@ -57,6 +57,8 @@ void analysis_JPsicandidates_plot_data() {
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
     double cuts_pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
     double cuts_pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
+    double cuts_eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
+    double cuts_eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
 
     TString data = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
     TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
@@ -128,7 +130,11 @@ void analysis_JPsicandidates_plot_data() {
 
     TH1F *pT_reco_scale = (TH1F*)pT_reco->Clone("pTscale");
     for (int i = 1; i <= pT_reco_scale->GetNbinsX(); i++) {
-        double w   = efficiency[i-1];              // since ROOT bins start at 1
+        double bin_center = pT_reco_scale->GetBinCenter(i);
+        double deltaY = getDeltaY(bin_center, cuts_eta_JPsi_min, cuts_eta_JPsi_max);
+        // std::cout << "Bin " << i << ": pT = " << bin_center << " GeV/c, Δy = " << deltaY << ", efficiency = " << efficiency[i-1] << std::endl;
+        // double w   = efficiency[i-1];              // since ROOT bins start at 1
+        double w   = efficiency[i-1]*deltaY;              // since ROOT bins start at 1
         double c   = pT_reco_scale->GetBinContent(i);
         double e   = pT_reco_scale->GetBinError(i);
 
