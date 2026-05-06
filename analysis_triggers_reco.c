@@ -42,11 +42,21 @@ void analysis_triggers_reco() {
     float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
     float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
     
-    float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
-    float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
+    // float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
+    // float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
     
-    float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
-    float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
+    // float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
+    // float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
+
+    float pT_leg_min = config["cuts_JPsi"]["pT_leg_min"];
+    float pT_leg_max = config["cuts_JPsi"]["pT_leg_max"];
+    float eta_leg_min = config["cuts_JPsi"]["eta_leg_min"];
+    float eta_leg_max = config["cuts_JPsi"]["eta_leg_max"];
+
+    float pT_assoc_min = config["cuts_mu"]["pT_mu_min"];
+    float pT_assoc_max = config["cuts_mu"]["pT_mu_max"];
+    float eta_assoc_min = config["cuts_mu"]["eta_mu_min"];
+    float eta_assoc_max = config["cuts_mu"]["eta_mu_max"];
     
     int n_files = config["n_files"];
 
@@ -167,12 +177,16 @@ void analysis_triggers_reco() {
                 
                 // Find the muon pair with invariant mass closest to J/Psi mass
                 for (size_t j = 0; j < muon_vectors.size(); ++j) {
-                    if (muon_vectors[j].Pt() < pT_mu_min || muon_vectors[j].Pt() > pT_mu_max) continue;
-                    if (muon_vectors[j].Eta() < eta_mu_min || muon_vectors[j].Eta() > eta_mu_max) continue;
+                    // if (muon_vectors[j].Pt() < pT_mu_min || muon_vectors[j].Pt() > pT_mu_max) continue;
+                    // if (muon_vectors[j].Eta() < eta_mu_min || muon_vectors[j].Eta() > eta_mu_max) continue;
+                    if (muon_vectors[j].Pt() < pT_leg_min || muon_vectors[j].Pt() > pT_leg_max) continue;
+                    if (muon_vectors[j].Eta() < eta_leg_min || muon_vectors[j].Eta() > eta_leg_max) continue;
 
                     for (size_t k = j + 1; k < muon_vectors.size(); ++k) {
-                        if (muon_vectors[k].Pt() < pT_mu_min || muon_vectors[k].Pt() > pT_mu_max) continue;
-                        if (muon_vectors[k].Eta() < eta_mu_min || muon_vectors[k].Eta() > eta_mu_max) continue;
+                        // if (muon_vectors[k].Pt() < pT_mu_min || muon_vectors[k].Pt() > pT_mu_max) continue;
+                        // if (muon_vectors[k].Eta() < eta_mu_min || muon_vectors[k].Eta() > eta_mu_max) continue;
+                        if (muon_vectors[k].Pt() < pT_leg_min || muon_vectors[k].Pt() > pT_leg_max) continue;
+                        if (muon_vectors[k].Eta() < eta_leg_min || muon_vectors[k].Eta() > eta_leg_max) continue;
 
                         auto track = muon_vectors[j] + muon_vectors[k];
 
