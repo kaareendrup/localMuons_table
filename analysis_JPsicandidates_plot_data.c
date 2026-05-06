@@ -23,7 +23,6 @@ using json = nlohmann::json;
 #include "utils/plots.c"
 #include "utils/efficiency.c"
 
-
 void analysis_JPsicandidates_plot_data() {
     // This function loads the histograms created in 
     // analysis_JPsicandidates, applies scaling if needed, 
@@ -114,11 +113,10 @@ void analysis_JPsicandidates_plot_data() {
 
     // Create scaled histogram
     c3->cd(2);
-
     TH1F *pT_reco_scale = (TH1F*)pT_reco->Clone("pTscale");
     scale_histogram(pT_reco_scale, efficiency, nEvents);
     pT_reco_scale->Draw("same");
-    
+
     pT_reco_scale->GetYaxis()->SetTitle("#frac{1}{N_{events}} d^{2}N/(dp_{T} dy) (GeV/c)^{-1}");
     setMax({pT_reco_scale});
     TLegend *leg3 = new TLegend(0.4,0.7,0.9,0.9);
