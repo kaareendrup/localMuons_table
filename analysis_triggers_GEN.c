@@ -16,7 +16,13 @@
 using json = nlohmann::json;
 
 void analysis_triggers_GEN() {
+    // This function finds J/Psi candidates and associate muons 
+    // at the generator level, applies cuts, and saves the 
+    // relevant information in a new tree for further analysis.
 
+    ////////////////////////////////////////////////////////////////////
+    ////            Load configuration, setup up filenames          ////
+    ////////////////////////////////////////////////////////////////////
     std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
     jsonFile >> config;
@@ -42,22 +48,33 @@ void analysis_triggers_GEN() {
     
     int n_files = config["n_files"];
 
+    ////////////////////////////////////////////////////////////////////
+    ////    Setup up variables to hold file and data information    ////
+    ////////////////////////////////////////////////////////////////////
     TString data_file;
     
+    // Input data variables
     int triggers_JPsi;
     int triggers_Psi2S;
     std::vector<double> deltaEta_JPsi, deltaPhi_JPsi;
     std::vector<double> deltaEta_Psi2S, deltaPhi_Psi2S;
     std::vector<double> deltaEta_JPsi_charm, deltaPhi_JPsi_charm;
     std::vector<double> deltaEta_JPsi_noncharm, deltaPhi_JPsi_noncharm;
-    
-    TFile* outFile = TFile::Open(TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data()), "RECREATE");
-    TTree* outTree = new TTree("Triggers", "JPsi triggers");
+    int nEvents = 0;
 
+    // Output data variables
     std::string category; 
     double pT, eta, phi, mass;
     std::vector<double> pT_assocs, eta_assocs, phi_assocs;
     std::vector<int> MotherPID;
+
+    ////////////////////////////////////////////////////////////////////
+    ////        Open and output files and set up branches           ////
+    ////////////////////////////////////////////////////////////////////
+
+    // Output file and tree
+    TFile* outFile = TFile::Open(TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data()), "RECREATE");
+    TTree* outTree = new TTree("Triggers", "JPsi triggers");
 
     outTree->Branch("category", &category);
     outTree->Branch("pT",  &pT,  "pT/D");
@@ -69,10 +86,15 @@ void analysis_triggers_GEN() {
     outTree->Branch("phi_assocs",  &phi_assocs);
     outTree->Branch("MotherPID", &MotherPID);
 
+    TTree* metaDataTree = new TTree("MetaData", "Metadata about the analysis");
+    metaDataTree->Branch("nEvents", &nEvents, "nEvents/I");
+
+    ////////////////////////////////////////////////////////////////////
+    ////    Loop over O2 output files, finding J/Psi candidates     ////
+    ////////////////////////////////////////////////////////////////////
     for (int i = 0; i < n_files; ++i) {
 
         std::cout << "Processing file " << i << " of " << n_files << std::endl;
-        // data_file = TString::Format("results/%s/%s/multi/muonAOD%d.root", MC_name.Data(), type.Data(), i);
         data_file = TString::Format("results/%s/%s/muonAOD%d.root", MC_name.Data(), type.Data(), i);
 
         // Load the dataframe keys
@@ -94,22 +116,31 @@ void analysis_triggers_GEN() {
             TTree *muontree = (TTree*)dir->Get("O2dqmuontable");
 
             std::cout << TString::Format("Reading tracks from dir %d of %d: %s\r", dirCount, file->GetListOfKeys()->GetEntries(), dir->GetName()) << std::flush;
-
+            
+            ////////////////////////////////////////////////////////////////////
+            ////    First loop to match muons and J/psi by event index      ////
+            ////////////////////////////////////////////////////////////////////
             std::map<ULong64_t, std::vector<Long64_t>> jpsi_groups, muon_groups;
             ULong64_t fEventIdx;
-
-            // First loops to match muons and J/psi by event index
+            
+            // JPsis
             jpsitree->SetBranchAddress("fEventIdx", &fEventIdx);
             for (Long64_t i = 0; i < jpsitree->GetEntries(); ++i) {
                 jpsitree->GetEntry(i);
                 jpsi_groups[fEventIdx].push_back(i);
             }
-
+            
+            // Muons
             muontree->SetBranchAddress("fEventIdx", &fEventIdx);
             for (Long64_t i = 0; i < muontree->GetEntries(); ++i) {
                 muontree->GetEntry(i);
                 muon_groups[fEventIdx].push_back(i);
             }
+            nEvents += muon_groups.size(); // Count unique events for metadata
+      
+            ////////////////////////////////////////////////////////////////////
+            ////    Second loop to save matching particles together         ////
+            ////////////////////////////////////////////////////////////////////
 
             // Initialize variables to read MC truth info
             Long64_t fGlobalIndexJPsi, fPDGJPsi, fMotherIDMuon, fMotherPDGMuon;
@@ -128,6 +159,7 @@ void analysis_triggers_GEN() {
             muontree->SetBranchAddress("fPhiassoc", &fPhiMuon);
             muontree->SetBranchAddress("fEtaassoc", &fEtaMuon);
 
+            // Loop over events with J/Psi candidates, and save the relevant information for those events
             for (auto& event : jpsi_groups) {
 
                 category = "";
@@ -187,7 +219,11 @@ void analysis_triggers_GEN() {
         delete file;
     }
 
+    // Fill metadata tree
+    metaDataTree->Fill();
+
     outFile->cd();
     outTree->Write();
+    metaDataTree->Write();
     outFile->Close();
 }
