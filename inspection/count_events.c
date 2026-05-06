@@ -1,4 +1,16 @@
 
+#include <TFile.h>
+#include <TTree.h>
+#include <TKey.h>
+#include <TDirectory.h>
+#include <TString.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <set>
+
 TTree* get_tree(TKey *key, TFile *file, TString treeName) {
     
     // Get the tree stored in the dataframe identified by the key
@@ -8,10 +20,10 @@ TTree* get_tree(TKey *key, TFile *file, TString treeName) {
     return tree;
 }
 
-void count_input(TString MC_name, int n_files) {
+void count_input(TString data_name, int n_files, bool MC = false) {
 
     // Load input data file list
-    TString input_file_list = TString::Format("input_data/%s/input_data_%d.txt", MC_name.Data(), n_files);
+    TString input_file_list = TString::Format("input_data/%s/input_data_%d.txt", data_name.Data(), n_files);
 
     std::ifstream infile(input_file_list.Data());
     std::string line;
@@ -38,6 +50,10 @@ void count_input(TString MC_name, int n_files) {
             muon_tree = get_tree((TKey*)keys->At(i), file, "O2reducedmuon");
             muon_count += muon_tree->GetEntries();
 
+            delete event_tree;
+            delete muon_tree;
+
+            if (!MC) continue;
             track_tree = get_tree((TKey*)keys->At(i), file, "O2reducedmctrack");
             track_tree->SetBranchAddress("fPdgCode", &pdgCode);
 
@@ -48,8 +64,6 @@ void count_input(TString MC_name, int n_files) {
                 }
             }
 
-            delete event_tree;
-            delete muon_tree;
             delete track_tree;
         }
 
@@ -59,13 +73,15 @@ void count_input(TString MC_name, int n_files) {
     std::cout << std::endl;
 
     // Print the total number of unique events
-    std::cout << "Input data stats for: " << MC_name << std::endl;
+    std::cout << "Input data stats for: " << data_name << std::endl;
     std::cout << "  Total events: " << event_count << std::endl;
     std::cout << "  Total reconstructed muon tracks (global and standalone): " << muon_count << std::endl;
-    std::cout << "  Total generated muons: " << gen_muon_count << std::endl << std::endl;
+    if (MC) {
+        std::cout << "  Total generated muons: " << gen_muon_count << std::endl << std::endl;
+    }
 }
 
-void count_analysis(TString MC_name, int n_files) {
+void count_analysis(TString data_name, int n_files) {
 
     // Initialize event counting variable
     int event_count = 0;
@@ -73,7 +89,7 @@ void count_analysis(TString MC_name, int n_files) {
 
     for (int f = 0; f < n_files; ++f) {
         std::cout << "Processing file " << f << " of " << n_files << std::endl;
-        TString data_file = "results/" + MC_name + "/muonAOD" + f + ".root";
+        TString data_file = "results/" + data_name + "/muonAOD" + f + ".root";
 
         // Load the dataframe keys
         TFile *file = TFile::Open(data_file);
@@ -105,7 +121,7 @@ void count_analysis(TString MC_name, int n_files) {
     std::cout << std::endl;
         
     // Print the total number of unique events
-    std::cout << "Analysis data stats for: " << MC_name << std::endl;
+    std::cout << "Analysis data stats for: " << data_name << std::endl;
     std::cout << "  Total events: " << event_count << std::endl;
     std::cout << "  Total muons: " << muon_count << std::endl << std::endl;
 }
@@ -114,16 +130,21 @@ void count_analysis(TString MC_name, int n_files) {
 void count_events() {
 
     // TString MC_name = "c3_global";
-    // count_input(MC_name, 200);
+    // count_input(MC_name, 200, MC = true);
     // TString MC_gen_name = "c3_global/gen";
     // count_analysis(MC_gen_name, 25);
     // TString MC_reco_name = "c3_global/reco";
     // count_analysis(MC_reco_name, 25);
     
-    TString MC_name = "c3_standalone";
-    count_input(MC_name, 200);
-    TString MC_gen_name = "c3_standalone/gen";
-    count_analysis(MC_gen_name, 25);
-    TString MC_reco_name = "c3_standalone/reco";
-    count_analysis(MC_reco_name, 25);
+    // TString MC_name = "c3_standalone";
+    // count_input(MC_name, 200), MC = true);
+    // TString MC_gen_name = "c3_standalone/gen";
+    // count_analysis(MC_gen_name, 25);
+    // TString MC_reco_name = "c3_standalone/reco";
+    // count_analysis(MC_reco_name, 25);
+
+    TString data_name = "DQ_data_standalone";
+    count_input(data_name, 400);
+    TString data_reco_name = "DQ_data_standalone/reco";
+    count_analysis(data_reco_name, 50);
 }
