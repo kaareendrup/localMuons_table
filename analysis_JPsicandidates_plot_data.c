@@ -100,7 +100,6 @@ void analysis_JPsicandidates_plot_data() {
     }
 
     // Create histograms
-    // TH1F* pT_reco = createInvMassHist("reco", config, data);
     createInvMassHist("reco", config, data);
     TH1F* pT_reco = createPTHist("reco", config, data);
     
