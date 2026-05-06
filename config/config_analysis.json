@@ -9,12 +9,16 @@
     "hepdata_name": "HEPData-ins1511865-v1-Table_1",
     "hepdata_crosssection": 75.0,
     "cuts_mu": {
-        "pT_mu_min": 0.0,
+        "pT_mu_min": 1.0,
         "pT_mu_max": 20.0,
         "eta_mu_min": -3.6,
         "eta_mu_max": -2.5
     },
     "cuts_JPsi": {
+        "pT_leg_min": 0.0,
+        "pT_leg_max": 20.0,
+        "eta_leg_min": -3.6,
+        "eta_leg_max": -2.5,
         "pT_JPsi_min": 1.0,
         "pT_JPsi_max": 20.0,
         "eta_JPsi_min": -3.6,
@@ -61,6 +65,6 @@
     },
     "background_range_backup": {
         "min": 2.7,
-        "max": 3.5
+        "max": 3.7
     }
 }
