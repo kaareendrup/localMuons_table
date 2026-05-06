@@ -20,20 +20,9 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-#include "effUtils.c"
-
-void setMax(std::vector<TH1F*> hists) {
-    // Adjust y-axis maximum to be 1.5 times the largest maximum among the provided histograms
-    double max_val = 0;
-    for (auto hist : hists) {
-        if (hist->GetMaximum() > max_val) {
-            max_val = hist->GetMaximum();
-        }
-    }
-    for (auto hist : hists) {
-        hist->SetMaximum(1.5 * max_val);
-    }
-}
+// #include "effUtils.c"
+#include "utils/plots.c"
+#include "utils/efficiency.c"
 
 double getRapidity(double pT, double eta) {
     double mJPsi = 3.096916; // J/Psi mass in GeV/c^2
@@ -68,9 +57,10 @@ void analysis_JPsicandidates_plot_data() {
     TString MC_name = TString::Format("%s_%s", eff_source.c_str(), muon_type.c_str());
 
     // Import metadata
+    TFile* file = TFile::Open(TString::Format("results/%s/reco/analysis.root", data.Data()), "READ");
     TTree *metaTree = nullptr;
     file->GetObject("MetaData", metaTree);
-    int *nEvents = nullptr;
+    int nEvents;
     metaTree->SetBranchAddress("nEvents", &nEvents);
     metaTree->GetEntry(0);
     
@@ -110,7 +100,9 @@ void analysis_JPsicandidates_plot_data() {
     }
 
     // Create histograms
-    TH1F* pT_reco = createInvMassHist("reco", config, data);
+    // TH1F* pT_reco = createInvMassHist("reco", config, data);
+    createInvMassHist("reco", config, data);
+    TH1F* pT_reco = createPTHist("reco", config, data);
     
     // Import efficiency
     std::vector<double> efficiency = get_efficiency(config, MC_name);
@@ -139,6 +131,7 @@ void analysis_JPsicandidates_plot_data() {
         pT_reco_scale->SetBinContent(i, c / w);
         pT_reco_scale->SetBinError(i, e / w);              // scale uncertainties too
     }
+    pT_reco_scale->Scale(1./nEvents); // Normalize by number of events to get per-event yield
     pT_reco_scale->Draw("same");
     
     setMax({pT_reco_scale});
@@ -150,17 +143,12 @@ void analysis_JPsicandidates_plot_data() {
     c3->SaveAs(TString::Format("results/%s/pTspectrascaled.png", data.Data()));
 
     // Create a canvas with two pads: top for the histogram, bottom for the ratio
-    TCanvas *c4 = new TCanvas("c4", "pT bin counts", 600, 600);
-    c4->Divide(1);
+    TCanvas *c4 = new TCanvas("c4", "pT bin counts", 700, 600);
+    c4->Divide(1,2);
   
     c4->cd(1);
+    gPad->SetPad(0,0.3,1,1);    // Top 70%
     pT_reco_scale->Draw();
-    
-    TLegend *leg4 = new TLegend(0.4,0.7,0.9,0.9);
-    leg4->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
-    leg4->SetBorderSize(0);
-    leg4->SetFillStyle(0);
-    leg4->Draw();
     
     // Add hepdata points with error bars
     TH1F *pTHepData = new TH1F("pTHepData", "pTHepData", pT_bins.size()-1, pT_bins.data());
@@ -175,6 +163,22 @@ void analysis_JPsicandidates_plot_data() {
     pTHepData->Draw("E1 SAME");
     
     pT_reco_scale->SetMinimum(1e-5);
+    
+    TLegend *leg4 = new TLegend(0.1,0.1,0.6,0.25);
+    leg4->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
+    leg4->AddEntry(pTHepData, "ALICE 2017", "lep");
+    leg4->Draw();
+
+    setMax({pT_reco_scale, pTHepData});
     gPad->SetLogy();
+    increaseMargins(c4);
+    drawLabel_cuts(data, "", &config, 0.85, 0.8, false, true, 0.05);
+    gPad->SetBottomMargin(0); // Remove bottom margin for top pad
+
+    c4->cd(2);
+    TH1F *ratio_hist = createRatioPlot(pT_reco_scale, pTHepData);
+    ratio_hist->SetMinimum(.3);
+    ratio_hist->SetMaximum(1.7);
+
     c4->SaveAs(TString::Format("results/%s/pTspectracompare.png", data.Data()));
 }
