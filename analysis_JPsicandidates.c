@@ -107,6 +107,7 @@ void analysis_JPsiHists(TString type) {
             }
         }
 
+        // Fill pT histograms for signal and background regions
         double w = (scale_by_y) ? 1.0 / getDeltaY(pT, eta_JPsi_min, eta_JPsi_max) : 1.0;
         if (mass >= signal_range_min && mass <= signal_range_max) {
             pT_sig->Fill(pT, w);
