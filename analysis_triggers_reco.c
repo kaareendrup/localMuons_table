@@ -18,8 +18,8 @@
 using json = nlohmann::json;
 
 void analysis_triggers_reco() {
-    // This function finds J/Psi candidates and associate muons
-    // at the reconstruction level, applies cuts, and saves the
+    // This function finds J/Psi candidates and associate muons 
+    // at the reconstruction level, applies cuts, and saves the 
     // relevant information in a new tree for further analysis.
 
     ////////////////////////////////////////////////////////////////////
