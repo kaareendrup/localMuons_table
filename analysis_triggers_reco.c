@@ -18,7 +18,13 @@
 using json = nlohmann::json;
 
 void analysis_triggers_reco() {
-    
+    // This function finds J/Psi candidates and associate muons
+    // at the reconstruction level, applies cuts, and saves the
+    // relevant information in a new tree for further analysis.
+
+    ////////////////////////////////////////////////////////////////////
+    ////            Load configuration, setup up filenames          ////
+    ////////////////////////////////////////////////////////////////////
     std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
     json config;
     jsonFile >> config;
@@ -44,6 +50,9 @@ void analysis_triggers_reco() {
     
     int n_files = config["n_files"];
 
+    ////////////////////////////////////////////////////////////////////
+    ////            Open output files and set up branches           ////
+    ////////////////////////////////////////////////////////////////////
     TFile* outFile = TFile::Open(TString::Format("results/%s/%s/eventmuons.root", MC_name.Data(), type.Data()), "RECREATE");
     TTree* outTree = new TTree("Triggers", "JPsi triggers");
 
@@ -70,6 +79,9 @@ void analysis_triggers_reco() {
     int exceptions[] = {3}; // ONLY FOR DATA FOR NOW
     // int exceptions[] = {-9999}; // Files with issues (e.g. missing trees)
 
+    ////////////////////////////////////////////////////////////////////
+    ////    Loop over O2 output files, finding J/Psi candidates     ////
+    ////////////////////////////////////////////////////////////////////
     for (int i = 0; i < n_files; ++i) {
 
         // Skip files with known issues
@@ -100,6 +112,10 @@ void analysis_triggers_reco() {
 
             std::cout << TString::Format("Reading tracks from dir %d of %d: %s\r", dirCount, file->GetListOfKeys()->GetEntries(), dir->GetName()) << std::flush;
 
+            ////////////////////////////////////////////////////////////////////
+            ////            First loop to match muons by event index        ////
+            ////////////////////////////////////////////////////////////////////
+
             // Group muons by event index
             std::map<ULong64_t, std::vector<Long64_t>> muon_groups;
             ULong64_t fEventIdx;
@@ -112,6 +128,10 @@ void analysis_triggers_reco() {
                 muon_groups[fEventIdx].push_back(i);
             }
             nEvents += muon_groups.size(); // Count unique events for metadata
+
+            ////////////////////////////////////////////////////////////////////
+            ////    Second loop to find J/Psi candidates and associates     ////
+            ////////////////////////////////////////////////////////////////////
 
             // Prepare to label
             Long64_t fGlobalIndexAssoc;
