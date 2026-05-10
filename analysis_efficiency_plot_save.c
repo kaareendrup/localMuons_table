@@ -164,7 +164,7 @@ void analysis_efficiency_plot_save() {
     drawHist(pTMuonRecoTrueRecoHist_2, "Muon p_{T} resolution;|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true};Counts", kRed, 1.2, true);
 
     // Add legend
-    TLegend *legend_res = new TLegend(0.42, 0.7, 0.75, 0.85);
+    TLegend *legend_res = new TLegend(0.22, 0.7, 0.55, 0.85);
     legend_res->AddEntry(pTMuonRecoTrueRecoHist_1, "Standalone Muons", "l");
     legend_res->AddEntry(pTMuonRecoTrueRecoHist_2, "Global Muons", "l");
     legend_res->Draw();
@@ -173,6 +173,8 @@ void analysis_efficiency_plot_save() {
     pTMuonRecoTrueRecoHist_1->SetMinimum(1e3);
     pTMuonRecoTrueRecoHist_2->SetMinimum(1e3);
     gPad->SetLogy();
+
+    drawLabel_cuts("DQ", "", &config, 0.85, 0.8);
 
     c5->SaveAs(TString::Format("results/%s/pt_resolution_overlay.png", MC_name_1.Data()));
 
@@ -198,12 +200,14 @@ void analysis_efficiency_plot_save() {
     TGraphErrors* gr_3 = (TGraphErrors*)file_1->Get("gr_ptMean");
     TGraphErrors* gr_4 = (TGraphErrors*)file_2->Get("gr_ptMean");
 
+    c6->SaveAs(TString::Format("results/%s/pt_resolution_vs_pt_overlay.png", MC_name_1.Data()));
+
     TCanvas *c7 = new TCanvas("c7", "Muon pT diff mean vs pT", 700, 600);
     drawGraph(gr_3, "Muon p_{T} resolution mean vs p_{T};p_{T} (GeV/c);#bar{|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true}}", kBlue);
     drawGraph(gr_4, "Muon p_{T} resolution mean vs p_{T};p_{T} (GeV/c);#bar{|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true}}", kRed, true);
 
     // Add legend
-    TLegend *legend_res_pt_mean = new TLegend(0.42, 0.7, 0.75, 0.85);
+    TLegend *legend_res_pt_mean = new TLegend(0.22, 0.7, 0.55, 0.85);
     legend_res_pt_mean->AddEntry(gr_3, "Standalone Muons", "l");
     legend_res_pt_mean->AddEntry(gr_4, "Global Muons", "l");
     legend_res_pt_mean->Draw();
@@ -214,7 +218,7 @@ void analysis_efficiency_plot_save() {
     c7->SetLeftMargin(0.20);
     c7->SetTopMargin(0.10);
 
-    drawLabel_cuts(MC_name_1, "", &config, 0.85, 0.59);
+    drawLabel_cuts("DQ", "", &config, 0.9, 0.8);
 
-    c7->SaveAs(TString::Format("results/%s/pt_resolution_vs_pt_overlay.png", MC_name_1.Data()));
+    c7->SaveAs(TString::Format("results/%s/mean_pt_resolution_vs_pt_overlay.png", MC_name_1.Data()));
 }
