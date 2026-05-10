@@ -10,6 +10,7 @@
 #include <TH1F.h>
 #include <TLegend.h>
 #include <TStyle.h>
+#include <TGraphErrors.h>
 
 #include <iostream>
 #include <fstream>
@@ -41,6 +42,20 @@ void drawHist(TH1F* hist, TString title, int line_color, float scale_factor, boo
 
     hist->Draw(ptype);
 
+}
+
+void drawGraph(TGraphErrors* graph, TString title, int marker_color, bool same = false) {
+    graph->SetMarkerColor(marker_color);
+    graph->SetMarkerStyle(20);
+    graph->SetLineColor(marker_color);
+    graph->SetLineWidth(2);
+    graph->SetTitle(title);
+    graph->SetMinimum(0);
+    if (same) {
+        graph->Draw("P SAME");
+    } else {
+        graph->Draw("AP");
+    }
 }
 
 void setMax(std::vector<TH1F*> hists, double factor = 1.5) {
