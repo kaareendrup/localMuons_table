@@ -75,9 +75,6 @@ void drawLabel_cuts(
     if (MC_name == "DQ") {
         label = "Pythia DQ prompt J/#Psi MC";
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
-        // details.push_back("matchedQualityCuts");
-        details.push_back("matchedMchMid");
-        details.push_back("muonQualityCuts");
     } else if (MC_name == "k4h_baseline") {
         label = "Pythia General purpose MC";
         details.push_back("#sqrt{#it{s}} = 13.6 TeV");
