@@ -10,6 +10,7 @@
 #include <TH1F.h>
 #include <TLegend.h>
 #include <TStyle.h>
+#include <TGraphErrors.h>
 
 #include <iostream>
 #include <fstream>
@@ -135,4 +136,85 @@ void analysis_efficiency_plot_save() {
     drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c4->SaveAs(TString::Format("results/%s/pT_plots_gen_reco.png", MC_name.Data()));
+    
+    // Resolution plots
+    TString MC_name_1 = TString::Format("%s_%s", data_name.c_str(), "standalone");
+    TString MC_name_2 = TString::Format("%s_%s", data_name.c_str(), "global");
+
+    TString in_file_1 = TString::Format("results/%s/efficiency.root", MC_name_1.Data());
+    TFile* file_1 = TFile::Open(in_file_1, "READ");
+    TString in_file_2 = TString::Format("results/%s/efficiency.root", MC_name_2.Data());
+    TFile* file_2 = TFile::Open(in_file_2, "READ");
+
+    TH1F *pTMuonRecoTrueRecoHist_1 = (TH1F*)file_1->Get("pTMuonRecoTrueRecoHist");
+    TH1F *pTMuonRecoTrueRecoHist_2 = (TH1F*)file_2->Get("pTMuonRecoTrueRecoHist");
+
+    // Check files and histograms
+    if (!file_1 || file_1->IsZombie() || !pTMuonRecoTrueRecoHist_1) {
+        std::cerr << "Error: Could not open file or find histogram for " << MC_name_1.Data() << std::endl;
+        return;
+    }
+    if (!file_2 || file_2->IsZombie() || !pTMuonRecoTrueRecoHist_2) {
+        std::cerr << "Error: Could not open file or find histogram for " << MC_name_2.Data() << std::endl;
+        return;
+    }
+
+    TCanvas *c5 = new TCanvas("c5", "Muon pT resolution", 700, 600);
+    drawHist(pTMuonRecoTrueRecoHist_1, "Muon p_{T} resolution;|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true};Counts", kBlue, 1.2);
+    drawHist(pTMuonRecoTrueRecoHist_2, "Muon p_{T} resolution;|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true};Counts", kRed, 1.2, true);
+
+    // Add legend
+    TLegend *legend_res = new TLegend(0.42, 0.7, 0.75, 0.85);
+    legend_res->AddEntry(pTMuonRecoTrueRecoHist_1, "Standalone Muons", "l");
+    legend_res->AddEntry(pTMuonRecoTrueRecoHist_2, "Global Muons", "l");
+    legend_res->Draw();
+    setMax({pTMuonRecoTrueRecoHist_1, pTMuonRecoTrueRecoHist_2});
+
+    pTMuonRecoTrueRecoHist_1->SetMinimum(1e3);
+    pTMuonRecoTrueRecoHist_2->SetMinimum(1e3);
+    gPad->SetLogy();
+
+    c5->SaveAs(TString::Format("results/%s/pt_resolution_overlay.png", MC_name_1.Data()));
+
+    TGraphErrors* gr_1 = (TGraphErrors*)file_1->Get("gr_ptResolution");
+    TGraphErrors* gr_2 = (TGraphErrors*)file_2->Get("gr_ptResolution");
+
+    TCanvas *c6 = new TCanvas("c6", "Muon pT resolution vs pT", 700, 600);
+    drawGraph(gr_1, "Muon p_{T} resolution vs p_{T};p_{T} (GeV/c);#bar{|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true}}", kBlue);
+    drawGraph(gr_2, "Muon p_{T} resolution vs p_{T};p_{T} (GeV/c);#bar{|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true}}", kRed, true);
+
+    // Add legend
+    TLegend *legend_res_pt = new TLegend(0.42, 0.7, 0.75, 0.85);
+    legend_res_pt->AddEntry(gr_1, "Standalone Muons", "l");
+    legend_res_pt->AddEntry(gr_2, "Global Muons", "l");
+    legend_res_pt->Draw();
+    setMax({gr_1->GetHistogram(), gr_2->GetHistogram()});
+    gr_1->GetXaxis()->SetLimits(1, 20);
+    gr_2->GetXaxis()->SetLimits(1, 20);
+    increaseMargins(c6);
+    c6->SetLeftMargin(0.20);
+    c6->SetTopMargin(0.10);
+
+    TGraphErrors* gr_3 = (TGraphErrors*)file_1->Get("gr_ptMean");
+    TGraphErrors* gr_4 = (TGraphErrors*)file_2->Get("gr_ptMean");
+
+    TCanvas *c7 = new TCanvas("c7", "Muon pT diff mean vs pT", 700, 600);
+    drawGraph(gr_3, "Muon p_{T} resolution mean vs p_{T};p_{T} (GeV/c);#bar{|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true}}", kBlue);
+    drawGraph(gr_4, "Muon p_{T} resolution mean vs p_{T};p_{T} (GeV/c);#bar{|p_{T}^{true} - p_{T}^{reco}|/p_{T}^{true}}", kRed, true);
+
+    // Add legend
+    TLegend *legend_res_pt_mean = new TLegend(0.42, 0.7, 0.75, 0.85);
+    legend_res_pt_mean->AddEntry(gr_3, "Standalone Muons", "l");
+    legend_res_pt_mean->AddEntry(gr_4, "Global Muons", "l");
+    legend_res_pt_mean->Draw();
+    setMax({gr_3->GetHistogram(), gr_4->GetHistogram()});
+    gr_3->GetXaxis()->SetLimits(1, 20);
+    gr_4->GetXaxis()->SetLimits(1, 20);
+    increaseMargins(c7);
+    c7->SetLeftMargin(0.20);
+    c7->SetTopMargin(0.10);
+
+    drawLabel_cuts(MC_name_1, "", &config, 0.85, 0.59);
+
+    c7->SaveAs(TString::Format("results/%s/pt_resolution_vs_pt_overlay.png", MC_name_1.Data()));
 }
