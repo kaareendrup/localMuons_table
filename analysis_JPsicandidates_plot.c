@@ -41,25 +41,25 @@ void analysis_JPsicandidates_plot() {
     std::string muon_type = config["muon_type"];
     float JPsi_branching_ratio = config["branching_ratio"];
 
-    TString MC_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
+    TString data_name = TString::Format("%s_%s", data_name.c_str(), muon_type.c_str());
 
     ////////////////////////////////////////////////////////////////////
     ////                Load histograms from file                   ////
     ////////////////////////////////////////////////////////////////////
 
     // Load and plot invariant mass spectra by pT bins
-    createInvMassHist("reco", config, MC_name);
-    createInvMassHist("gen", config, MC_name);
+    createInvMassHist("reco", config, data_name);
+    createInvMassHist("gen", config, data_name);
     
     // Load and plot pT spectra, extracting signal-background
-    TH1F* pT_reco = createPTHist("reco", config, MC_name);
-    TH1F* pT_gen = createPTHist("gen", config, MC_name);
+    TH1F* pT_reco = createPTHist("reco", config, data_name);
+    TH1F* pT_gen = createPTHist("gen", config, data_name);
 
     // Import metadata
-    int nEvents = getNEvents(MC_name);
+    int nEvents = getNEvents(data_name);
 
     // Get efficiency for scaling
-    std::vector<double> efficiency = get_efficiency(config, MC_name);
+    std::vector<double> efficiency = get_efficiency(config, data_name);
 
     ////////////////////////////////////////////////////////////////////
     ////        Plot corrected and uncorrected J/Psi spectra        ////
@@ -92,7 +92,7 @@ void analysis_JPsicandidates_plot() {
     leg3->AddEntry(pT_gen, "Generated", "l");
     leg3->AddEntry(pT_reco_scale, "Reconstructed\n (corrected)", "l");
     leg3->Draw();
-    c3->SaveAs(TString::Format("results/%s/pTspectrascaled.png", MC_name.Data()));
+    c3->SaveAs(TString::Format("results/%s/pTspectrascaled.png", data_name.Data()));
 
     // Plot only the corrected distribution with ratio to generated
     TCanvas *c4 = new TCanvas("c4", "pT bin counts", 600, 600);
@@ -117,5 +117,5 @@ void analysis_JPsicandidates_plot() {
     ratio_hist->SetMaximum(1.08);
     c4->SetBottomMargin(0.8);
     
-    c4->SaveAs(TString::Format("results/%s/pTspectraratio.png", MC_name.Data()));
+    c4->SaveAs(TString::Format("results/%s/pTspectraratio.png", data_name.Data()));
 }
