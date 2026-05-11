@@ -41,7 +41,7 @@ void analysis_JPsicandidates_plot_data() {
 
     std::string data_name = config["data_name"];
     std::string muon_type = config["muon_type"];
-    std::string eff_source = config["data_eff_source"];
+    std::string eff_source = config["config_dataset"][data_name]["data_eff_source"];
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
     float cuts_pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
     float cuts_pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];

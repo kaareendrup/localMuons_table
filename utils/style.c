@@ -118,19 +118,20 @@ void drawLabel_cuts(
     if (config) {
 
         float cuts_pT_min, cuts_pT_max, cuts_eta_min, cuts_eta_max;
-        
+        std::string muon_type = config->at("muon_type");
+
         // Loop over mu and J/Psi
         for (int i = 0; i < 1 + show_muons; ++i) {
             if (i == 0) {
                 cuts_pT_min = config->at("cuts_JPsi").at("pT_JPsi_min");
                 cuts_pT_max = config->at("cuts_JPsi").at("pT_JPsi_max");
-                cuts_eta_min = config->at("cuts_JPsi").at("eta_JPsi_min");
-                cuts_eta_max = config->at("cuts_JPsi").at("eta_JPsi_max");
+                cuts_eta_min = config->at("type_specific_cuts").at(muon_type).at("cuts_JPsi").at("eta_JPsi_min");
+                cuts_eta_max = config->at("type_specific_cuts").at(muon_type).at("cuts_JPsi").at("eta_JPsi_max");
             } else {
                 cuts_pT_min = config->at("cuts_mu").at("pT_mu_min");
                 cuts_pT_max = config->at("cuts_mu").at("pT_mu_max");
-                cuts_eta_min = config->at("cuts_mu").at("eta_mu_min");
-                cuts_eta_max = config->at("cuts_mu").at("eta_mu_max");
+                cuts_eta_min = config->at("type_specific_cuts").at(muon_type).at("cuts_mu").at("eta_mu_min");
+                cuts_eta_max = config->at("type_specific_cuts").at(muon_type).at("cuts_mu").at("eta_mu_max");
             }
 
             TString particle = (i == 0) ? "trig" : "#mu";

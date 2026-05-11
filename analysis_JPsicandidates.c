@@ -37,11 +37,9 @@ void analysis_JPsiHists(TString type) {
     TString data_name = TString::Format("%s_%s", dataset_name.c_str(), muon_type.c_str());
 
     // Cuts
-    float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
-    float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
-    
-    int n_files = config["n_files"];
-
+    float eta_JPsi_min = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_JPsi_min"];
+    float eta_JPsi_max = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_JPsi_max"];
+    int n_files = config["config_dataset"][dataset_name]["n_files"];
     // Histogram parameters
     bool scale_by_y = config["scale_by_y"];
     int n_bins_mass = config["hists"]["n_bins_mass"];
@@ -49,7 +47,7 @@ void analysis_JPsiHists(TString type) {
     float signal_range_max = config["signal_range"]["max"];
     float background_range_min = config["background_range"]["min"];
     float background_range_max = config["background_range"]["max"];
-    
+
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
 
     // Set in and out filenames

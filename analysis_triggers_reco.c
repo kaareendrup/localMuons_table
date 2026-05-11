@@ -38,20 +38,20 @@ void analysis_triggers_reco() {
     // Cuts
     float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
     float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
-    float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
-    float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
-    
+    float eta_JPsi_min = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_JPsi_min"];
+    float eta_JPsi_max = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_JPsi_max"];
+
     float pT_leg_min = config["cuts_JPsi"]["pT_mu_min"];
     float pT_leg_max = config["cuts_JPsi"]["pT_mu_max"];
-    float eta_leg_min = config["cuts_JPsi"]["eta_mu_min"];
-    float eta_leg_max = config["cuts_JPsi"]["eta_mu_max"];
-    
+    float eta_leg_min = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_mu_min"];
+    float eta_leg_max = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_mu_max"];
+
     float pT_assoc_min = config["cuts_mu"]["pT_mu_min"];
     float pT_assoc_max = config["cuts_mu"]["pT_mu_max"];
-    float eta_assoc_min = config["cuts_mu"]["eta_mu_min"];
-    float eta_assoc_max = config["cuts_mu"]["eta_mu_max"];
+    float eta_assoc_min = config["type_specific_cuts"][muon_type]["cuts_mu"]["eta_mu_min"];
+    float eta_assoc_max = config["type_specific_cuts"][muon_type]["cuts_mu"]["eta_mu_max"];
 
-    int n_files = config["n_files"];
+    int n_files = config["config_dataset"][data_name]["n_files"];
 
     ////////////////////////////////////////////////////////////////////
     ////            Open output files and set up branches           ////

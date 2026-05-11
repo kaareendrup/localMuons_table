@@ -1,28 +1,64 @@
 {
-    "data_name": "DQ_data_backup",
+    "data_name": "DQ_data",
     "muon_type": "standalone",
-    "data_eff_source": "c3",
-    "n_files": 50,
+    "config_dataset": {
+        "c3": {
+            "data_eff_source": "",
+            "n_files": 25
+        },
+        "f4d": {
+            "data_eff_source": "",
+            "n_files": 185
+        },
+        "DQ_data": {
+            "data_eff_source": "c3",
+            "n_files": 50
+        },
+        "DQ_PbPb": {
+            "data_eff_source": "c3",
+            "n_files": 21
+        }
+    },
     "scale_by_y": true,
     "branching_ratio": 1,
     "branching_ratio_old": 0.05961,
     "hepdata_name": "HEPData-ins1511865-v1-Table_1",
     "hepdata_crosssection": 75.0,
+    "type_specific_cuts": {
+        "standalone": {
+            "cuts_mu": {
+                "eta_mu_min": -4.0,
+                "eta_mu_max": -2.5
+            },
+            "cuts_JPsi": {
+                "eta_mu_min": -4.0,
+                "eta_mu_max": -2.5,
+                "eta_JPsi_min": -4.0,
+                "eta_JPsi_max": -2.5
+            }
+        },
+        "global": {
+            "cuts_mu": {
+                "eta_mu_min": -3.6,
+                "eta_mu_max": -2.5
+            },
+            "cuts_JPsi": {
+                "eta_mu_min": -3.6,
+                "eta_mu_max": -2.5,
+                "eta_JPsi_min": -3.6,
+                "eta_JPsi_max": -2.5
+            }
+        }
+    },
     "cuts_mu": {
         "pT_mu_min": 1.0,
-        "pT_mu_max": 20.0,
-        "eta_mu_min": -3.6,
-        "eta_mu_max": -2.5
+        "pT_mu_max": 20.0
     },
     "cuts_JPsi": {
         "pT_mu_min": 0.0,
         "pT_mu_max": 20.0,
-        "eta_mu_min": -3.6,
-        "eta_mu_max": -2.5,
         "pT_JPsi_min": 1.0,
-        "pT_JPsi_max": 20.0,
-        "eta_JPsi_min": -3.6,
-        "eta_JPsi_max": -2.5
+        "pT_JPsi_max": 20.0
     },
     "hists": {
         "n_bins_pT": 20,

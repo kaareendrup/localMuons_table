@@ -35,19 +35,19 @@ void analysis_efficiency() {
     float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
     float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
 
-    float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
-    float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
-    
+    float eta_JPsi_min = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_JPsi_min"];
+    float eta_JPsi_max = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_JPsi_max"];
+
     float pT_mu_min = config["cuts_mu"]["pT_mu_min"];
     float pT_mu_max = config["cuts_mu"]["pT_mu_max"];
-    
-    float eta_mu_min = config["cuts_mu"]["eta_mu_min"];
-    float eta_mu_max = config["cuts_mu"]["eta_mu_max"];
-    
+
+    float eta_mu_min = config["type_specific_cuts"][muon_type]["cuts_mu"]["eta_mu_min"];
+    float eta_mu_max = config["type_specific_cuts"][muon_type]["cuts_mu"]["eta_mu_max"];
+
     float signal_range_min = config["signal_range"]["min"];
     float signal_range_max = config["signal_range"]["max"];
 
-    int n_files = config["n_files"];
+    int n_files = config["config_dataset"][data_name]["n_files"];
     
     // Setup output file and trees
     TFile* outFile = TFile::Open(TString::Format("results/%s/particles.root", MC_name.Data()), "RECREATE");
