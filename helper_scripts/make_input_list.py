@@ -18,6 +18,9 @@ def make_input_list(input_dir):
                 continue
 
             run_dir = os.path.join(input_dir, run+'/AOD/')
+            if not os.path.isdir(run_dir):
+                print(f'No AOD directory found in {run_dir}, skipping')
+                continue
 
             subruns = [d for d in os.listdir(run_dir) if os.path.isdir(os.path.join(run_dir, d))]
 
@@ -34,10 +37,10 @@ def make_input_list(input_dir):
     print(f'Saved {len(input_files)} files to {input_dir}/input_data.txt')
 
 # run_dir = '/home/kaareendrup/analysis/input_data/DQ_PbPb'
-# run_dir = '/home/kaareendrup/analysis/input_data/c3_global'
+run_dir = '/home/kaareendrup/analysis/input_data/c3_global'
 # run_dir = '/home/kaareendrup/analysis/input_data/c3_standalone'
 # run_dir = '/home/kaareendrup/analysis/input_data/f4d_global'
 # run_dir = '/home/kaareendrup/analysis/input_data/f4d_standalone'
-run_dir = '/home/kaareendrup/analysis/input_data/DQ_data_global'
+# run_dir = '/home/kaareendrup/analysis/input_data/DQ_data_global'
 # run_dir = '/home/kaareendrup/analysis/input_data/DQ_data_standalone'
 make_input_list(run_dir)
