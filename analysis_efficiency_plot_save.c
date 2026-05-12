@@ -51,11 +51,11 @@ void analysis_efficiency_plot_save() {
     gStyle->SetOptTitle(1);
     c1->cd(1);
     
-    drawHist(muonEffHist, "#mu Efficiency;p_{T} (GeV/c);Eff_{#mu}", kBlue, 1.2, false, false);
+    drawHist(muonEffHist, "#mu Efficiency;p_{T} (GeV/c);Eff_{#mu}", kBlue, 1.2, false, true);
     drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c1->cd(2);
-    drawHist(JPsiEffHist, "J/#Psi Efficiency;p_{T} (GeV/c);Eff_{J/#Psi}", kBlue, 1.2, false, false);
+    drawHist(JPsiEffHist, "J/#Psi Efficiency;p_{T} (GeV/c);Eff_{J/#Psi}", kBlue, 1.2, false, true);
     drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
     // drawLabel_cuts(MC_name, "", &config, 0.2, 0.85, true, false);
     gPad->SetLeftMargin(0.15);
@@ -67,11 +67,11 @@ void analysis_efficiency_plot_save() {
     c2->Divide(2,1);
 
     c2->cd(1);
-    drawHist(muonEffTrueHist, "#mu Efficiency;p_{T} (GeV/c);Eff_{#mu}", kBlue, 1.2, false, false);
+    drawHist(muonEffTrueHist, "#mu Efficiency;p_{T} (GeV/c);Eff_{#mu}", kBlue, 1.2, false, true);
     drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c2->cd(2);
-    drawHist(JPsiEffTrueHist, "J/#Psi Efficiency;p_{T} (GeV/c);Eff_{J/#Psi}", kBlue, 1.2, false, false);
+    drawHist(JPsiEffTrueHist, "J/#Psi Efficiency;p_{T} (GeV/c);Eff_{J/#Psi}", kBlue, 1.2, false, true);
     drawLabel_cuts(MC_name, "", &config, 0.85, 0.59);
 
     c2->SaveAs(TString::Format("results/%s/efficiency_plots_true.png", MC_name.Data()));

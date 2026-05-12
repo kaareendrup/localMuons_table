@@ -35,7 +35,7 @@ void analysis_efficiency_plot() {
     float background_range_min = config["background_range"]["min"];
     float background_range_max = config["background_range"]["max"];
 
-    float JPsi_branching_ratio = config["branching_ratio"];
+    float JPsi_branching_ratio = config["config_dataset"][data_name]["branching_ratio"];
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
     const int n_pT_bins = pT_bins.size() - 1;
 
@@ -191,10 +191,28 @@ void analysis_efficiency_plot() {
     TH1F *JPsiEffHist = (TH1F*)pTJPsiRecoHist->Clone("JPsiEffHist");
     TH1F *JPsiEffTrueHist = (TH1F*)pTJPsiRecoTrueHist->Clone("JPsiEffTrueHist");
 
-    muonEffHist->Divide(pTMuonGenHist);
     muonEffTrueHist->Divide(pTMuonGenHist);
-    JPsiEffHist->Divide(pTJPsiGenHist);
     JPsiEffTrueHist->Divide(pTJPsiGenHist);
+    for (int i = 1; i <= muonEffHist->GetNbinsX(); ++i) {
+        double recContent = pTMuonRecoHist->GetBinContent(i);
+        double genContent = pTMuonGenHist->GetBinContent(i);
+        if (genContent > 0) {
+            double eff = recContent / genContent;
+            double effErr = sqrt(eff * (1 - eff) / genContent); // Binomial error
+            muonEffHist->SetBinContent(i, eff);
+            muonEffHist->SetBinError(i, effErr);
+        }
+    }
+    for (int i = 1; i <= JPsiEffHist->GetNbinsX(); ++i) {
+        double recContent = pTJPsiRecoHist->GetBinContent(i);
+        double genContent = pTJPsiGenHist->GetBinContent(i);
+        if (genContent > 0) {
+            double eff = recContent / genContent;
+            double effErr = sqrt(eff * (1 - eff) / genContent); // Binomial error
+            JPsiEffHist->SetBinContent(i, eff);
+            JPsiEffHist->SetBinError(i, effErr);
+        }
+    }
 
     JPsiEffHist->Scale(JPsi_branching_ratio);
     JPsiEffTrueHist->Scale(JPsi_branching_ratio);
