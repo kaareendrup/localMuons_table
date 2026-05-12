@@ -146,10 +146,10 @@ void drawLabel_cuts(
             }
 
             // Eta cuts
-            if (cuts_eta_min > -4.0) {
+            if (cuts_eta_min > -10.0) {
                 eta_str = Form("%.1f < %s", cuts_eta_min, eta_str.Data());
             }
-            if (cuts_eta_max < 4.0) {
+            if (cuts_eta_max < 10.0) {
                 eta_str = Form("%s < %.1f", eta_str.Data(), cuts_eta_max);
             }
 
