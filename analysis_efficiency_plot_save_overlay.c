@@ -31,14 +31,6 @@ void analysis_efficiency_plot_save_overlay() {
     json config;
     jsonFile >> config;
 
-    float pT_JPsi_min = config["cuts_JPsi"]["pT_JPsi_min"];
-    float pT_JPsi_max = config["cuts_JPsi"]["pT_JPsi_max"];
-
-    float eta_JPsi_min = config["cuts_JPsi"]["eta_JPsi_min"];
-    float eta_JPsi_max = config["cuts_JPsi"]["eta_JPsi_max"];
-    std::vector<float> pT_JPsi_cuts = {pT_JPsi_min, pT_JPsi_max, 0, 20};
-    std::vector<float> eta_JPsi_cuts = {eta_JPsi_min, eta_JPsi_max, -4.0, 4.0};
-
     // Data
     std::string data_name_1 = "c3";
     std::string data_name_2 = "f4d";
