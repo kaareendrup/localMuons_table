@@ -20,6 +20,12 @@ using json = nlohmann::json;
 
 #include "utils/data.c"
 
+struct BestMatch {
+    Long64_t idx;
+    double delta;
+    ULong64_t EventIdx;
+};
+
 void analysis_efficiency() {
 
     std::ifstream jsonFile("localMuons_table/config/config_analysis.json");
@@ -47,7 +53,7 @@ void analysis_efficiency() {
     float signal_range_min = config["signal_range"]["min"];
     float signal_range_max = config["signal_range"]["max"];
 
-    int n_files = config["config_dataset"][data_name]["n_files"];
+    int n_files = config["config_dataset"][data_name + "_" + muon_type]["n_files"];
     
     // Setup output file and trees
     TFile* outFile = TFile::Open(TString::Format("results/%s/particles.root", MC_name.Data()), "RECREATE");
@@ -81,7 +87,16 @@ void analysis_efficiency() {
     metaData->Branch("pTCuts", &pTCuts);
     metaData->Branch("etaCuts", &etaCuts);
     metaData->Fill();
-    
+
+    int muRawCountReco = 0;
+    int muPIDcountReco = 0;
+    int muCutCountReco = 0;
+    int muDoubleCountReco = 0;
+    int muRawCountGen = 0;
+    int muPIDcountGen = 0;
+    int muEtaCountGen = 0;
+    int muPtCountGen = 0;
+
     // Loop over gen and reco files
     for (int i = 0; i < n_files; ++i) {
 
@@ -127,11 +142,15 @@ void analysis_efficiency() {
             muonGenTree->SetBranchAddress("fMotherID", &fMotherID);
             for (Long64_t i = 0; i < muonGenTree->GetEntries(); ++i) {
                 muonGenTree->GetEntry(i);
+                muRawCountGen++;
                 
                 if (!(charm_beauty_cut(fMotherPDG) || charm_beauty_cut(fGrandmotherPDG))) continue;
                 MCMuonMothers.insert(fMotherID);
-                if (fEtaMuonGen < eta_mu_min || fEtaMuonGen > eta_mu_max) continue; // Apply eta cut on muons
+                muPIDcountGen++;
+                // if (fEtaMuonGen < eta_mu_min || fEtaMuonGen > eta_mu_max) continue; // Apply eta cut on muons
+                muEtaCountGen++;
                 if (fPtMuonGen < pT_mu_min || fPtMuonGen > pT_mu_max) continue; // Apply pT cut on muons
+                muPtCountGen++;
                 pTMuonGen = fPtMuonGen;
                 etaMuonGen = fEtaMuonGen;
                 outTreeMuonsGen->Fill();
@@ -176,12 +195,13 @@ void analysis_efficiency() {
             // Group muons by event index
             std::map<ULong64_t, std::vector<Long64_t>> muon_groups;
             ULong64_t fEventIdx;
-            Long64_t fMotherPDG, fMotherID, fGrandmotherPDG, fGlobalIndexMCtrack;
+            Long64_t fMotherPDG, fMotherID, fGrandmotherPDG, fGlobalIndexMCtrack, muonPDG;
             muonRecoTree->SetBranchAddress("fEventIdx", &fEventIdx);
             muonRecoTree->SetBranchAddress("fMotherPDG", &fMotherPDG);
             muonRecoTree->SetBranchAddress("fMotherID", &fMotherID);
             muonRecoTree->SetBranchAddress("fGrandmotherPDG", &fGrandmotherPDG);
             muonRecoTree->SetBranchAddress("fGlobalIndexMCtrack", &fGlobalIndexMCtrack);
+            muonRecoTree->SetBranchAddress("fTrackPDG", &muonPDG);
 
             // Prepare to read muon kinematics
             float fPt, fPt_true, fPt_mother, fPhi, fPhi_mother, fEta, fEta_mother;
@@ -192,24 +212,40 @@ void analysis_efficiency() {
             muonRecoTree->SetBranchAddress("fPhimother", &fPhi_mother);
             muonRecoTree->SetBranchAddress("fEtaassoc", &fEta);
             muonRecoTree->SetBranchAddress("fEtamother", &fEta_mother);
-            std::unordered_set<Long64_t> seenMCMuons;
 
-            // First pass: build groups of muons from the same event
+            // std::unordered_set<Long64_t> seenMCMuons;
+            std::unordered_map<Long64_t, BestMatch> best_match;
+
+            // First pass: build groups of muons from the same MC track
             for (Long64_t i = 0; i < muonRecoTree->GetEntries(); ++i) {
                 muonRecoTree->GetEntry(i);
+                muRawCountReco++;
 
                 // if (seenMCMuons.count(fGlobalIndexMCtrack)) continue; // Skip if we've already seen this MC track index
                 if (!(charm_beauty_cut(fMotherPDG) || charm_beauty_cut(fGrandmotherPDG))) continue;
+                if (fGlobalIndexMCtrack < 0) continue; // Skip unassigned muons
+                if (std::abs(muonPDG) != 13) continue; // Only consider muons
+                muPIDcountReco++;
                 if (fPt < pT_mu_min || fPt > pT_mu_max) continue;
                 if (fEta < eta_mu_min || fEta > eta_mu_max) continue;
+                muCutCountReco++;
 
-                // Save muon
-                muon_groups[fEventIdx].push_back(i);
-                seenMCMuons.insert(fGlobalIndexMCtrack);
-                pTMuonReco = fPt;
-                pTMuonReco_true = fPt_true;
-                etaMuonReco = fEta;
-                outTreeMuonsReco->Fill();
+                double delta = std::abs(fPt - fPt_true);
+                int key = fGlobalIndexMCtrack;
+
+                auto it = best_match.find(key);
+                if (it == best_match.end() || delta < it->second.delta) {
+                    best_match[key] = {i, delta, fEventIdx};
+                }
+                // seenMCMuons.insert(fGlobalIndexMCtrack);
+            }
+
+            // Second loop, find best match
+            for (const auto& [mcIdx, match] : best_match) {
+                Long64_t idx = match.idx;
+                ULong64_t EventIdx = match.EventIdx;
+                muon_groups[EventIdx].push_back(idx);
+                muDoubleCountReco++;
             }
 
             // Prepare to label
@@ -222,8 +258,6 @@ void analysis_efficiency() {
                 ULong64_t eventID = event.first;
                 auto& muon_entries = event.second;
 
-                if (muon_entries.size() < 2) continue; // Needs at least 2 muons to form a pair
-
                 std::vector<ROOT::Math::PtEtaPhiMVector> muon_vectors;
                 std::vector<ROOT::Math::PtEtaPhiMVector> muon_mother_vectors;
                 std::vector<Long64_t> motherIDs;
@@ -231,6 +265,11 @@ void analysis_efficiency() {
                 // Read muon kinematics and build 4-vectors
                 for (auto entry : muon_entries) {
                     muonRecoTree->GetEntry(entry);
+                    pTMuonReco = fPt;
+                    pTMuonReco_true = fPt_true;
+                    etaMuonReco = fEta;
+                    outTreeMuonsReco->Fill();
+
                     if (!(fMotherPDG == 443)) continue; // Only consider muons from J/Psi for the JPsi tree
                     ROOT::Math::PtEtaPhiMVector muon_vec(fPt, fEta, fPhi, 0.105658); // Muon mass ~105.658 MeV/c^2
                     muon_vectors.push_back(muon_vec);
@@ -238,7 +277,9 @@ void analysis_efficiency() {
                     muon_mother_vectors.push_back(muon_mother_vec);
                     motherIDs.push_back(fMotherID);
                 }
-
+                
+                if (muon_entries.size() < 2) continue; // Needs at least 2 muons to form a pair
+        
                 // Find muon pairs with invariant mass closest to J/Psi mass
                 for (size_t j = 0; j < muon_vectors.size(); ++j) {
                     for (size_t k = j + 1; k < muon_vectors.size(); ++k) {
@@ -272,6 +313,9 @@ void analysis_efficiency() {
         recoFile->Close();
         delete recoFile;
     }
+    std::cout << std::endl;
+    std::cout << "Muon counts (Reco): Raw = " << muRawCountReco << ", PID = " << muPIDcountReco << ", Cuts = " << muCutCountReco << ", Double-counted = " << muDoubleCountReco << std::endl;
+    std::cout << "Muon counts (Gen):  Raw = " << muRawCountGen << ", PID = " << muPIDcountGen << ", Eta = " << muEtaCountGen << ", Pt = " << muPtCountGen << std::endl;
 
     outFile->cd();
     outTreeJPsiGen->Write();
