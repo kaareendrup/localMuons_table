@@ -2,6 +2,7 @@
 #include <TString.h>
 #include <TH1F.h>
 #include <TGraphAsymmErrors.h>
+#include <TEfficiency.h>
 #include <vector>
 
 double getRapidity(double pT, double eta) {
@@ -45,4 +46,35 @@ double get_weight(double pT, const std::vector<double>& pT_bins, const std::vect
     // return 1.0 / (getDeltaY(pT, eta_trigger_min, eta_trigger_max));
     // return 1.0 / (efficiency[eff_bin]);
     // return 1.0;
+}
+
+void fillEfficiencHist(TH1F* recoHist, TH1F* genHist, TH1F* effHist) {
+    for (int i = 1; i <= effHist->GetNbinsX(); ++i) {
+        double recContent = recoHist->GetBinContent(i);
+        double genContent = genHist->GetBinContent(i);
+        if (genContent > 0) {
+            double eff = recContent / genContent;
+            double effErr = sqrt(eff * abs(1 - eff) / genContent); // Binomial error
+            effHist->SetBinContent(i, eff);
+            effHist->SetBinError(i, effErr);
+        }
+        else {
+            effHist->SetBinContent(i, 0);
+            effHist->SetBinError(i, 0);
+            printf("Warning: Gen content is zero in bin %d, cannot calculate efficiency!\n", i);
+        }
+    }
+};
+
+TEfficiency* createEfficiencyGraph(TH1F*passedHist, TH1F* totalHist) {
+    if (TEfficiency::CheckConsistency(*passedHist, *totalHist)) {
+        TEfficiency* effGraph = new TEfficiency(*passedHist, *totalHist);
+        return effGraph;
+    } else {
+        std::cerr << "Error: Histograms are not consistent for TEfficiency!\n";
+        for (int i = 1; i <= passedHist->GetNbinsX(); ++i) {
+            std::cerr << "Bin " << i << ": Passed = " << passedHist->GetBinContent(i) << ", Total = " << totalHist->GetBinContent(i) << "\n";
+        }
+        return nullptr;
+    }
 }

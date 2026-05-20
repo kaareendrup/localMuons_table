@@ -9,6 +9,7 @@
 #include <TH1F.h>
 #include <TGraphErrors.h>
 #include <TF1.h>
+#include <TEfficiency.h>
 
 #include <iostream>
 #include <fstream>
@@ -18,6 +19,8 @@
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
+#include "utils/hists.c"
 
 void analysis_efficiency_plot() {
 
@@ -35,7 +38,7 @@ void analysis_efficiency_plot() {
     float background_range_min = config["background_range"]["min"];
     float background_range_max = config["background_range"]["max"];
 
-    float JPsi_branching_ratio = config["config_dataset"][data_name]["branching_ratio"];
+    float JPsi_branching_ratio = config["config_dataset"][data_name + "_" + muon_type]["branching_ratio"];
     std::vector<double> pT_bins = config["hists"]["pT_bins"].get<std::vector<double>>();
     const int n_pT_bins = pT_bins.size() - 1;
 
@@ -123,6 +126,9 @@ void analysis_efficiency_plot() {
         muonsReco->GetEntry(i);
         pTMuonRecoHist->Fill(pTMuonReco);
         pTMuonRecoTrueHist->Fill(pTMuonReco_true);
+        if (pTMuonReco_true < 0 || pTMuonReco < 0) {
+            std::cerr << "Warning: pTReco or pTGen are negative for entry " << i << " in file " << in_file << "\n";
+        }
 
         pTMuonRecoTrueRecoHist->Fill(std::abs(pTMuonReco_true-pTMuonReco)/pTMuonReco_true);
         for (uint i = 0; i < pT_bins.size()-1; ++i) {
@@ -136,6 +142,7 @@ void analysis_efficiency_plot() {
         }
     }
     std::cout << std::endl;
+    std::cout << "Entries in reco pT histogram: " << pTMuonRecoHist->GetEntries() << ", Entries in reco true pT histogram: " << pTMuonRecoTrueHist->GetEntries() << std::endl;
 
     TGraphErrors* gr_res = new TGraphErrors(pT_bins.size()-1);
     TGraphErrors* gr_mean = new TGraphErrors(pT_bins.size()-1);
@@ -155,7 +162,7 @@ void analysis_efficiency_plot() {
 
         gr_mean->SetPoint(i, ptCenter, h_ptResAbs[i]->GetMean());
         gr_mean->SetPointError(i, ptWidth, h_ptResAbs[i]->GetRMS()/sqrt(h_ptResAbs[i]->GetEntries()));
-    }    
+    }
     gr_res->SetName("gr_ptResolution");
     gr_mean->SetName("gr_ptMean");
 
@@ -165,7 +172,8 @@ void analysis_efficiency_plot() {
         pTMuonGenHist->Fill(pTMuonGen);
     }
     std::cout << std::endl;
-    
+    std::cout << "Entries in gen pT histogram: " << pTMuonGenHist->GetEntries() << std::endl;
+
     for (Long64_t i = 0; i < JPsiReco->GetEntries(); ++i) {
         std::cout << "Processing reco J/Psi entry " << i+1 << " of " << JPsiReco->GetEntries() << "\r" << std::flush;
         JPsiReco->GetEntry(i);
@@ -191,31 +199,18 @@ void analysis_efficiency_plot() {
     TH1F *JPsiEffHist = (TH1F*)pTJPsiRecoHist->Clone("JPsiEffHist");
     TH1F *JPsiEffTrueHist = (TH1F*)pTJPsiRecoTrueHist->Clone("JPsiEffTrueHist");
 
-    muonEffTrueHist->Divide(pTMuonGenHist);
-    JPsiEffTrueHist->Divide(pTJPsiGenHist);
-    for (int i = 1; i <= muonEffHist->GetNbinsX(); ++i) {
-        double recContent = pTMuonRecoHist->GetBinContent(i);
-        double genContent = pTMuonGenHist->GetBinContent(i);
-        if (genContent > 0) {
-            double eff = recContent / genContent;
-            double effErr = sqrt(eff * (1 - eff) / genContent); // Binomial error
-            muonEffHist->SetBinContent(i, eff);
-            muonEffHist->SetBinError(i, effErr);
-        }
-    }
-    for (int i = 1; i <= JPsiEffHist->GetNbinsX(); ++i) {
-        double recContent = pTJPsiRecoHist->GetBinContent(i);
-        double genContent = pTJPsiGenHist->GetBinContent(i);
-        if (genContent > 0) {
-            double eff = recContent / genContent;
-            double effErr = sqrt(eff * (1 - eff) / genContent); // Binomial error
-            JPsiEffHist->SetBinContent(i, eff);
-            JPsiEffHist->SetBinError(i, effErr);
-        }
-    }
+    fillEfficiencHist(pTMuonRecoHist, pTMuonGenHist, muonEffHist);
+    fillEfficiencHist(pTMuonRecoTrueHist, pTMuonGenHist, muonEffTrueHist);
+    fillEfficiencHist(pTJPsiRecoHist, pTJPsiGenHist, JPsiEffHist);
+    fillEfficiencHist(pTJPsiRecoTrueHist, pTJPsiGenHist, JPsiEffTrueHist);
 
-    JPsiEffHist->Scale(JPsi_branching_ratio);
-    JPsiEffTrueHist->Scale(JPsi_branching_ratio);
+    JPsiEffHist->Scale(1.0 / JPsi_branching_ratio);
+    JPsiEffTrueHist->Scale(1.0 / JPsi_branching_ratio);
+
+    // TEfficiency *muonEff = createEfficiencyGraph(pTMuonRecoHist, pTMuonGenHist);
+    // TEfficiency *muonEffTrue = createEfficiencyGraph(pTMuonRecoTrueHist, pTMuonGenHist);
+    // TEfficiency *JPsiEff = createEfficiencyGraph(pTJPsiRecoHist, pTJPsiGenHist);
+    // TEfficiency *JPsiEffTrue = createEfficiencyGraph(pTJPsiRecoTrueHist, pTJPsiGenHist);
 
     outFile->cd();
     pTMuonRecoHist->Write();
@@ -229,6 +224,11 @@ void analysis_efficiency_plot() {
     muonEffTrueHist->Write();
     JPsiEffHist->Write();
     JPsiEffTrueHist->Write();
+
+    // muonEff->Write();
+    // muonEffTrue->Write();
+    // JPsiEff->Write();
+    // JPsiEffTrue->Write();
 
     pTMuonRecoTrueRecoHist->Write();
     gr_res->Write();
