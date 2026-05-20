@@ -2,22 +2,42 @@
     "data_name": "c3",
     "muon_type": "standalone",
     "config_dataset": {
-        "c3": {
+        "c3_standalone": {
             "data_eff_source": "",
-            "n_files": 25,
+            "n_files": 57,
             "branching_ratio": 1
         },
-        "f4d": {
+        "c3_global": {
+            "data_eff_source": "",
+            "n_files": 46,
+            "branching_ratio": 1
+        },
+        "f4d_standalone": {
             "data_eff_source": "",
             "n_files": 185,
             "branching_ratio": 0.05961
         },
-        "DQ_data": {
+        "f4d_global": {
+            "data_eff_source": "",
+            "n_files": 185,
+            "branching_ratio": 0.05961
+        },
+        "DQ_data_standalone": {
             "data_eff_source": "c3",
             "n_files": 50,
             "branching_ratio": 1
         },
-        "DQ_PbPb": {
+        "DQ_data_global": {
+            "data_eff_source": "c3",
+            "n_files": 50,
+            "branching_ratio": 1
+        },
+        "DQ_PbPb_standalone": {
+            "data_eff_source": "c3",
+            "n_files": 21,
+            "branching_ratio": 1
+        },
+        "DQ_PbPb_global": {
             "data_eff_source": "c3",
             "n_files": 21,
             "branching_ratio": 1
@@ -57,7 +77,7 @@
         "pT_mu_max": 20.0
     },
     "cuts_JPsi": {
-        "pT_mu_min": 0.7,
+        "pT_mu_min": 1.0,
         "pT_mu_max": 20.0,
         "pT_JPsi_min": 1.0,
         "pT_JPsi_max": 20.0

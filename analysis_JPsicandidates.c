@@ -39,7 +39,7 @@ void analysis_JPsiHists(TString type) {
     // Cuts
     float eta_JPsi_min = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_JPsi_min"];
     float eta_JPsi_max = config["type_specific_cuts"][muon_type]["cuts_JPsi"]["eta_JPsi_max"];
-    int n_files = config["config_dataset"][dataset_name]["n_files"];
+    int n_files = config["config_dataset"][data_name]["n_files"];
     // Histogram parameters
     bool scale_by_y = config["scale_by_y"];
     int n_bins_mass = config["hists"]["n_bins_mass"];

@@ -51,7 +51,7 @@ void analysis_triggers_reco() {
     float eta_assoc_min = config["type_specific_cuts"][muon_type]["cuts_mu"]["eta_mu_min"];
     float eta_assoc_max = config["type_specific_cuts"][muon_type]["cuts_mu"]["eta_mu_max"];
 
-    int n_files = config["config_dataset"][data_name]["n_files"];
+    int n_files = config["config_dataset"][MC_name]["n_files"];
 
     ////////////////////////////////////////////////////////////////////
     ////            Open output files and set up branches           ////
