@@ -1,4 +1,6 @@
 
+#include <TStyle.h>
+
 #include "TLatex.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
