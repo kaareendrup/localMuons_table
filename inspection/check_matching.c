@@ -7,7 +7,9 @@ struct eventLookup {
 eventLookup check_matching_output() {
 
     // TString MC_name = "c3_global";
-    TString MC_name = "c3_global_temp";
+    // TString MC_name = "c3_global_temp";
+    TString MC_name = "f4d_standalone";
+    // TString MC_name = "c3_standalone";
 
     TString reco_file = TString::Format("results/%s/reco/muonAOD0.root", MC_name.Data());
     TString gen_file = TString::Format("results/%s/gen/muonAOD0.root", MC_name.Data());
@@ -33,6 +35,7 @@ eventLookup check_matching_output() {
 
     // Loop over directories in gen file
     // while ((genKey = (TKey*) nextGenKey())) {
+    int muonCount = 0;
     while ((genKey = (TKey*) nextGenKey()) && dirCount < 1) {
 
         // Load directory and tree
@@ -51,11 +54,23 @@ eventLookup check_matching_output() {
         for (Long64_t i = 0; i < muonGenTree->GetEntries(); ++i) {
             muonGenTree->GetEntry(i);
             muon_groups_gen[fEventIdx].push_back(fGlobalIndexMCTrack);
+            muonCount++;
         }
     
         dirCount++;
     }
     std::cout << std::endl;
+    std::cout << "Found gen muons for " << muon_groups_gen.size() << " events." << std::endl;
+    std::cout << "Total gen muons found: " << muonCount << std::endl;
+
+    // Print the first 20 event IDs:
+    std::cout << "First 20 event IDs with gen muons:" << std::endl;
+    int count = 0;
+    for (const auto& pair : muon_groups_gen) {
+        std::cout << "Event ID: " << pair.first << std::endl;
+        count++;
+        if (count >= 20) break;
+    }
 
     dirCount = 0;
 
@@ -63,6 +78,8 @@ eventLookup check_matching_output() {
     TKey* recoKey;
 
     eventLookup target_event;
+    int mismatchCount = 0;
+    std::map<Long64_t, int> mismatch_PID_counts; // Map of PID to count of mismatches
 
     // while ((recoKey = (TKey*) nextRecoKey())) {
     while ((recoKey = (TKey*) nextRecoKey()) && dirCount < 1) {
@@ -81,81 +98,103 @@ eventLookup check_matching_output() {
         muonRecoTree->SetBranchAddress("fTrackPDG", &fTrackPDG);
 
         for (Long64_t i = 0; i < muonRecoTree->GetEntries(); ++i) {
+            std::cout << "Match checked for " << i << " entries.\r" << std::flush;
             muonRecoTree->GetEntry(i);
             bool match_found = false;
-            for (const auto& idx : muon_groups_gen[fEventIdx]) {
+            // std::cout << "Checking reco muon with global index " << fGlobalIndexMCTrack << " in event " << fEventIdx << " / " << fMCEventIdx << std::endl;
+            for (const auto& idx : muon_groups_gen[fMCEventIdx]) {
+                // std::cout << "Checking gen muon with idx " << idx << " against reco muon with global index " << fGlobalIndexMCTrack << std::endl;
                 if (idx == fGlobalIndexMCTrack) {
                     match_found = true;
                     break;
                 }
             }
-            for (const auto& idx : muon_groups_gen[fEventIdx-1]) {
+            for (const auto& idx : muon_groups_gen[fMCEventIdx-1]) {
+                // std::cout << "Checking gen muon with idx " << idx << " against reco muon with global index " << fGlobalIndexMCTrack << std::endl;
                 if (idx == fGlobalIndexMCTrack) {
                     match_found = true;
                     break;
                 }
             }
-            for (const auto& idx : muon_groups_gen[fEventIdx+1]) {
+            for (const auto& idx : muon_groups_gen[fMCEventIdx+1]) {
+                // std::cout << "Checking gen muon with idx " << idx << " against reco muon with global index " << fGlobalIndexMCTrack << std::endl;
                 if (idx == fGlobalIndexMCTrack) {
                     match_found = true;
                     break;
                 }
             }
-            for (const auto& idx : muon_groups_gen[fEventIdx-2]) {
+            for (const auto& idx : muon_groups_gen[fMCEventIdx-2]) {
+                // std::cout << "Checking gen muon with idx " << idx << " against reco muon with global index " << fGlobalIndexMCTrack << std::endl;
                 if (idx == fGlobalIndexMCTrack) {
                     match_found = true;
                     break;
                 }
             }
-            for (const auto& idx : muon_groups_gen[fEventIdx+2]) {
+            for (const auto& idx : muon_groups_gen[fMCEventIdx+2]) {
+                // std::cout << "Checking gen muon with idx " << idx << " against reco muon with global index " << fGlobalIndexMCTrack << std::endl;
                 if (idx == fGlobalIndexMCTrack) {
                     match_found = true;
                     break;
                 }
             }
             if (!match_found) {
+                if (fTrackPDG != 13 && fTrackPDG != -13) {
+                    mismatch_PID_counts[fTrackPDG]++;
+                    continue; 
+                } // Only consider muons for mismatch
+
+                std::cout << std::endl;
                 std::cout << "Match not found for event " << fEventIdx << " / " << fMCEventIdx << " and muon " << fGlobalIndexMCTrack << " / " << fGlobalIndexassoc << std::endl;
                 std::cout << "Gen muons for this event: ";
-                for (const auto& idx : muon_groups_gen[fEventIdx]) {
+                for (const auto& idx : muon_groups_gen[fMCEventIdx]) {
                     std::cout << idx << " ";
                 }
                 std::cout << std::endl;
                 std::cout << "Muons 1 before: ";
-                for (const auto& idx : muon_groups_gen[fEventIdx-1]) {
+                for (const auto& idx : muon_groups_gen[fMCEventIdx-1]) {
                     std::cout << idx << " ";
                 }
                 std::cout << std::endl;
                 std::cout << "Muons 1 after: ";
-                for (const auto& idx : muon_groups_gen[fEventIdx+1]) {
+                for (const auto& idx : muon_groups_gen[fMCEventIdx+1]) {
                     std::cout << idx << " ";
                 }
                 std::cout << std::endl;
                 std::cout << "Muons 2 before: ";
-                for (const auto& idx : muon_groups_gen[fEventIdx-2]) {
+                for (const auto& idx : muon_groups_gen[fMCEventIdx-2]) {
                     std::cout << idx << " ";
                 }
                 std::cout << std::endl;
                 std::cout << "Muons 2 after: ";
-                for (const auto& idx : muon_groups_gen[fEventIdx+2]) {
+                for (const auto& idx : muon_groups_gen[fMCEventIdx+2]) {
                     std::cout << idx << " ";
                 }
                 std::cout << std::endl;
 
                 std::cout << "Muon PID: " << fTrackPDG << std::endl << std::endl;
-                target_event = eventLookup(fEventIdx, target_dir_name);
+                target_event = eventLookup(fMCEventIdx, target_dir_name);
                 std::cout << "Target event set to: " << target_event.eventID << " in directory " << target_event.dirName << std::endl;
-                break; // Exit loop after first mismatch for this event
+                mismatchCount++;
+                if (mismatchCount >= 5) {
+                    std::cout << "Reached maximum mismatch count of 5, stopping search." << std::endl;
+                    break;
+                }
             }
         }
 
         dirCount++;
+    }
+    std::cout << std::endl;
+    std::cout << "Mismatch counts by PID:" << std::endl;
+    for (const auto& pair : mismatch_PID_counts) {
+        std::cout << "PID: " << pair.first << ", Count: " << pair.second << std::endl;
     }
     return target_event;
 }
 
 void check_matching_input(eventLookup target_event) {
 
-    TString data_file = "input_data/c3_global/hy_4205648/AOD/001/AO2D.root";
+    TString data_file = "/home/kaareendrup/analysis/input_data/f4d_global/hy_4978940/AOD/001/AO2D.root";
 
     TFile *dataFile = TFile::Open(data_file);
 
